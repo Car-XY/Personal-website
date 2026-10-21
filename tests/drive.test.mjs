@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { EXITS, speedAt, gearAt, rpmAt, exitPose } from '../src/drive.js';
+import { EXITS, speedAt, gearAt, rpmAt, exitPose, entryPose, OFF_RAMP, ON_RAMP, rampGap, highwayEdgePath, advanceWorld, WORLD_PERIOD } from '../src/drive.js';
 import { existsSync, readFileSync } from 'node:fs';
 
 test('a ride accelerates smoothly, reaches 180, and never exceeds it', () => {
@@ -36,7 +36,7 @@ test('all highway exits have matching readable portfolio content', () => {
 });
 
 test('the optimized real model, local decoder, resume, and recorded engine clips ship together', () => {
-  for (const asset of ['models/audi-r8.glb', 'draco/draco_decoder.wasm', 'Cary-Li-Resume.pdf', 'audio/r8-engine.mp3', 'audio/r8-rev.mp3', 'audio/r8-cruise.mp3', 'audio/car-horn.mp3', 'images/projects/anchor.png', 'images/projects/kera.png', 'images/projects/clearpath.png']) {
+  for (const asset of ['models/audi-r8.glb', 'draco/draco_decoder.wasm', 'Cary-Li-Resume.pdf', 'audio/r8-engine.mp3', 'audio/r8-rev.mp3', 'audio/r8-cruise-steady.wav', 'audio/car-horn.mp3', 'images/projects/anchor.png', 'images/projects/kera.png', 'images/projects/clearpath.png']) {
     assert.ok(existsSync(`public/${asset}`), asset);
   }
   assert.equal(readFileSync('public/models/audi-r8.glb').subarray(0, 4).toString(), 'glTF');
@@ -48,17 +48,48 @@ test('the optimized real model, local decoder, resume, and recorded engine clips
   assert.notDeepEqual(body.pbrMetallicRoughness.baseColorFactor, tyres.pbrMetallicRoughness.baseColorFactor);
 });
 
-test('the shared ramp connects highway and parking bay with a continuous heading', () => {
+test('the exit and separate entrance always move forward and join the highway smoothly', () => {
   assert.deepEqual(exitPose(0), {x:500,y:510,angle:0});
-  assert.deepEqual(exitPose(1), {x:770,y:180,angle:0});
-  let previous = exitPose(0);
-  for (let i=1;i<=100;i++) {
-    const next = exitPose(i/100);
-    assert.ok(next.x>=previous.x && next.y<previous.y);
-    assert.ok(Math.hypot(next.x-previous.x,next.y-previous.y)<8);
-    assert.ok(Math.abs(next.angle-previous.angle)<4);
-    previous = next;
+  assert.equal(exitPose(1).x, 770);
+  assert.ok(Math.abs(exitPose(1).y-100)<1e-8);
+  assert.equal(entryPose(0).x, 770);
+  assert.equal(entryPose(0).y, 844);
+  assert.equal(entryPose(1).x,500);
+  assert.equal(entryPose(1).y,510);
+  assert.ok(Math.abs(entryPose(1).angle)<1e-8);
+  for (const pose of [exitPose,entryPose]) {
+    let previous = pose(0);
+    for (let i=1;i<=200;i++) {
+      const next = pose(i/200);
+      assert.ok(next.y<previous.y, 'car must travel north, never reverse');
+      assert.ok(Math.hypot(next.x-previous.x,next.y-previous.y)<6);
+      assert.ok(Math.abs(next.angle-previous.angle)<6);
+      previous = next;
+    }
+    assert.deepEqual(pose(-1),pose(0));
+    assert.deepEqual(pose(2),pose(1));
   }
-  assert.deepEqual(exitPose(-1),exitPose(0));
-  assert.deepEqual(exitPose(2),exitPose(1));
+  assert.ok(exitPose(1).angle>0 && entryPose(0).angle<0);
+});
+
+test('highway border opens across the full width of both straight ramps', () => {
+  for (const ramp of [OFF_RAMP,ON_RAMP]) {
+    const gap=rampGap(ramp);
+    const centre=ramp.start.y+(650-ramp.start.x)*(ramp.end.y-ramp.start.y)/(ramp.end.x-ramp.start.x);
+    assert.ok(gap.top<centre && centre<gap.bottom);
+    assert.ok(gap.bottom-gap.top>84, 'oblique ramp needs a wider junction');
+    assert.equal(highwayEdgePath(ramp),`M650 -2000V${gap.top}M650 ${gap.bottom}V2400`);
+  }
+  assert.ok(rampGap(OFF_RAMP).bottom<rampGap(ON_RAMP).top);
+});
+
+test('world moves downward at frame-rate-independent speed with a seamless repeat', () => {
+  const once=advanceWorld(0,180,1);
+  let frames=0;
+  for(let i=0;i<60;i++) frames=advanceWorld(frames,180,1/60);
+  assert.ok(once>0);
+  assert.ok(Math.abs(once-frames)<1e-8);
+  assert.equal(advanceWorld(123,0,1),123);
+  for(const period of [84,250,15,60]) assert.equal(WORLD_PERIOD%period,0);
+  assert.ok(advanceWorld(WORLD_PERIOD-1,180,.1)<100);
 });

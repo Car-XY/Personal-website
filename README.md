@@ -21,8 +21,9 @@ npm run preview
 
 - **Landing page:** choose Enter the Garage or Test Drive Car-XY. Portfolio sections mount only after a mode is chosen.
 - **Test drive:** a recorded R8 sample, followed by acceleration to 180 km/h in a flat 2D map.
-- **Green exit signs:** reveal a shared off-ramp. The car takes the ramp and parks before Projects, Design Teams, Journey, Skills, or Contact opens in an accessible native dialog.
-- **Back on the road:** animate the return along the ramp, merge onto the highway, and choose another exit.
+- **Green exit signs:** reveal a straight shared off-ramp with an open highway junction. The car takes the ramp before Projects, Design Teams, Journey, Skills, or Contact opens in an accessible native dialog.
+- **Back on the road:** drive forward along a separate on-ramp, merge onto the highway, and choose another exit.
+- **Highway scenery:** evergreen trees and lane markings scroll with one shared world offset; wind trails follow the car at speed. A level real-engine recording loops continuously through Web Audio at cruising speed.
 - **Return to garage:** show the full scrollable portfolio, including résumé and contact links.
 - **R:** rev the engine. **H:** honk. **M:** toggle sound. **Escape:** close an exit.
 - **Drag the car:** orbit the detailed 3D model, including Car-XY plates, a sealed underside, and a basic cabin.

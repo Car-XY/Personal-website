@@ -21,19 +21,60 @@ export function rpmAt(speed, rev = 0) {
 }
 
 export const EXIT_DURATION = 2100;
-export const EXIT_CURVE = [
-  { x: 500, y: 510 }, { x: 500, y: 325 },
-  { x: 770, y: 405 }, { x: 770, y: 180 },
-];
+export const HIGHWAY = { left:350, right:650 };
+export const OFF_RAMP = { start:{x:600,y:330}, end:{x:1020,y:-238.2352941176} };
+export const ON_RAMP = { start:{x:600,y:600}, end:{x:1000,y:1174.1176470588} };
+export const WORLD_PERIOD = 10500; // A whole number of every repeating pattern.
 
-// All destinations use this shared physical ramp; only their information differs.
-export function exitPose(progress) {
-  const t = Math.max(0, Math.min(1, progress));
+export function advanceWorld(offset,speed,seconds) {
+  return (offset + Math.max(0,speed) * Math.max(0,seconds) * 1.45) % WORLD_PERIOD;
+}
+
+function cubicPose(points,t) {
   const s = 1 - t;
-  const [a,b,c,d] = EXIT_CURVE;
+  const [a,b,c,d] = points;
   const x = s**3*a.x + 3*s*s*t*b.x + 3*s*t*t*c.x + t**3*d.x;
   const y = s**3*a.y + 3*s*s*t*b.y + 3*s*t*t*c.y + t**3*d.y;
   const dx = 3*s*s*(b.x-a.x) + 6*s*t*(c.x-b.x) + 3*t*t*(d.x-c.x);
   const dy = 3*s*s*(b.y-a.y) + 6*s*t*(c.y-b.y) + 3*t*t*(d.y-c.y);
   return { x, y, angle: Math.atan2(dy, dx) * 180 / Math.PI + 90 };
+}
+
+function linePose(a,b,t) {
+  return {x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,angle:Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI+90};
+}
+
+// The road itself is straight. A short lane change joins its centre line.
+export function exitPose(progress) {
+  const t=Math.max(0,Math.min(1,progress));
+  if (t<.55) return cubicPose([{x:500,y:510},{x:500,y:440},{x:565,y:377.3529411765},OFF_RAMP.start],t/.55);
+  return linePose(OFF_RAMP.start,{x:770,y:100},(t-.55)/.45);
+}
+
+// Enter from the lower right, travel forward, then straighten into the highway.
+export function entryPose(progress) {
+  const t=Math.max(0,Math.min(1,progress));
+  if(t<.55) return linePose({x:770,y:844},ON_RAMP.start,t/.55);
+  return cubicPose([ON_RAMP.start,{x:565,y:549.7647058824},{x:500,y:570},{x:500,y:510}],(t-.55)/.45);
+}
+
+export function rampPath(ramp) {
+  return `M${ramp.start.x} ${ramp.start.y}L${ramp.end.x} ${ramp.end.y}`;
+}
+
+// Intersect each ramp edge with the highway edge, leaving a real open junction.
+export function rampGap(ramp,x=HIGHWAY.right,width=84) {
+  const dx=ramp.end.x-ramp.start.x,dy=ramp.end.y-ramp.start.y,length=Math.hypot(dx,dy);
+  const nx=-dy/length,ny=dx/length;
+  const crossings=[-1,1].map(side=>{
+    const px=ramp.start.x+nx*width/2*side,py=ramp.start.y+ny*width/2*side;
+    return py+(x-px)*dy/dx;
+  }).sort((a,b)=>a-b);
+  return {top:crossings[0],bottom:crossings[1]};
+}
+
+export function highwayEdgePath(ramp,x=HIGHWAY.right,width=84) {
+  if(!ramp) return `M${x} -2000V2400`;
+  const gap=rampGap(ramp,x,width);
+  return `M${x} -2000V${gap.top}M${x} ${gap.bottom}V2400`;
 }

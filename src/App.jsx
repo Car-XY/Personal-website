@@ -165,7 +165,7 @@ function Drive({ speed, ready, activeExit, navigatingExit, maneuver, maneuverPro
       <nav aria-label="Highway exits">{EXITS.map(exit=><button key={exit.id} className="map-exit-sign" onClick={()=>onSelect(exit)}><span className="map-exit-number">{exit.number}</span><span><strong>{exit.title}</strong><small>{exit.subtitle}</small></span><ArrowUpRight size={20}/></button>)}</nav>
       <div className="map-directory-note">FIVE DESTINATIONS. ONE SCENIC OFF-RAMP.</div>
     </aside>
-    {!ready && !activeExit && <div className="map-drive-message"><span className="eyebrow">{movingToExit ? 'FOLLOWING THE OFF-RAMP' : 'THE OPEN ROAD IS CALLING'}</span><h2>{maneuver === 'exiting' ? `Next stop: ${navigatingExit.title}.` : maneuver === 'returning' ? 'Back to the open road.' : speed < 40 ? 'Here we go.' : 'Finding your next adventure.'}</h2><p>{movingToExit ? 'Car-XY is taking the scenic route.' : 'Your exit signs will appear at cruising speed.'}</p></div>}
+    {!ready && !activeExit && <div className="map-drive-message"><span className="eyebrow">{maneuver === 'returning' ? 'JOINING THE ON-RAMP' : movingToExit ? 'FOLLOWING THE OFF-RAMP' : 'THE OPEN ROAD IS CALLING'}</span><h2>{maneuver === 'exiting' ? `Next stop: ${navigatingExit.title}.` : maneuver === 'returning' ? 'Back to the open road.' : speed < 40 ? 'Here we go.' : 'Finding your next adventure.'}</h2><p>{movingToExit ? 'Car-XY is taking the scenic route.' : 'Your exit signs will appear at cruising speed.'}</p></div>}
     <div className="map-compass" aria-hidden="true"><Navigation size={20}/><span>E</span></div>
     <div className="map-telemetry" aria-label={`Speed ${speed} kilometres per hour, gear ${gearAt(speed)}`}><div className="map-telemetry-top"><span>AUDI R8 · CAR-XY</span><span className="status-dot"/></div><div className="map-speed"><span>{activeExit ? 'P' : gearAt(speed)}</span><strong>{speed.toString().padStart(3,'0')}</strong><small>KM/H</small></div><div className="map-rpm"><span style={{width:`${rpmAt(speed,rev)/8500*100}%`}}/></div><div className="map-drive-state">{activeExit ? 'PARKED · ENJOY THE STOP' : maneuver === 'exiting' ? 'INDICATOR ON · TAKING EXIT' : maneuver === 'returning' ? 'MERGING ONTO HIGHWAY 401' : ready ? 'CRUISING · PICK A DESTINATION' : 'ACCELERATING'}</div></div>
     <div className="drive-controls" id="drive-controls"><button onClick={onRev} className={rev ? 'active' : ''}><Gauge size={17}/><span>{rev ? 'REVVING…' : 'REV ENGINE'}</span><kbd>R</kbd></button><button onClick={onHorn} className={honking ? 'active' : ''}><Megaphone size={17}/><span>{honking ? 'BEEP BEEP!' : 'HORN'}</span><kbd>H</kbd></button><div className="drive-controls-divider"/><button className="control-icon" onClick={onMute} aria-label={muted ? 'Unmute sound' : 'Mute sound'}>{muted ? <VolumeX size={18}/> : <Volume2 size={18}/>}</button><button className="control-icon" onClick={()=>setHelp(!help)} aria-label="Show driving help" aria-expanded={help}><CircleHelp size={18}/></button></div>
@@ -222,11 +222,11 @@ export default function App() {
     function tick(now) {
       const progress = Math.min(1,(now-started)/duration);
       const eased = progress*progress*(3-2*progress);
-      setManeuverProgress(maneuver === 'exiting' ? eased : 1-eased);
+      setManeuverProgress(eased);
       setSpeed(Math.round(maneuver === 'exiting' ? 180*(1-eased) : 65*eased));
       if (progress < 1) frame = requestAnimationFrame(tick);
       else if (maneuver === 'exiting') { setManeuver('parked'); setActiveExit(navigatingExit); }
-      else { initialSpeed.current = 65; setManeuver('cruising'); setNavigatingExit(null); setRun(value=>value+1); }
+      else { initialSpeed.current = 65; setManeuverProgress(0); setManeuver('cruising'); setNavigatingExit(null); setRun(value=>value+1); }
     }
     frame = requestAnimationFrame(tick);
     return ()=>cancelAnimationFrame(frame);
@@ -271,7 +271,7 @@ export default function App() {
     if (!ready || maneuver !== 'cruising') return;
     setReady(false); setNavigatingExit(exit); setManeuver('exiting');
   }
-  function back() { setActiveExit(null); setReady(false); setManeuver('returning'); audio.resume(0); }
+  function back() { setActiveExit(null); setReady(false); setManeuverProgress(0); setManeuver('returning'); audio.resume(0); }
 
   useEffect(()=>{
     function key(event) {
