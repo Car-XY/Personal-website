@@ -62,7 +62,7 @@ export default function Scene({ driving = false, speed = 0, onReady, onError }) 
       floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; floor.position.y = -0.015; scene.add(floor);
       const loader = new GLTFLoader();
       const draco = new DRACOLoader(); draco.setDecoderPath('/draco/'); loader.setDRACOLoader(draco);
-      loader.load('/models/audi-r8.glb', gltf => {
+      loader.load('/models/audi-r8.glb?v=navy-materials-2', gltf => {
         if (disposed) { gltf.scene.traverse(n => { n.geometry?.dispose(); }); return; }
         car = gltf.scene;
         const bounds = new THREE.Box3().setFromObject(car);
