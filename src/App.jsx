@@ -4,6 +4,8 @@ import { EXITS, speedAt, gearAt, rpmAt, EXIT_DURATION } from './drive.js';
 import { links, projects, skills } from './data.js';
 import { audio } from './audio.js';
 import TopDownDrive from './TopDownDrive.jsx';
+import GarageHub from './GarageHub.jsx';
+import { garageDestination, canReturnToRoad } from './garage.js';
 
 const Scene = lazy(() => import('./Scene.jsx'));
 
@@ -138,7 +140,7 @@ function Footer({ onStart }) {
 
 const sectionComponents = { projects: Projects, teams: Teams, journey: Journey, skills: Skills, contact: Contact };
 
-function StopDialog({ exit, onBack, onGarage }) {
+function StopDialog({ exit, onBack, onGarage, origin = 'drive' }) {
   const modal = useRef(null);
   const lastFocus = useRef(null);
   useEffect(()=>{
@@ -148,10 +150,14 @@ function StopDialog({ exit, onBack, onGarage }) {
     function cancel(event) { event.preventDefault(); onBack(); }
     function click(event) { if (event.target === dialog) onBack(); }
     dialog.addEventListener('cancel', cancel); dialog.addEventListener('click', click);
-    return ()=>{ dialog.removeEventListener('cancel', cancel); dialog.removeEventListener('click', click); dialog.close(); lastFocus.current?.focus(); };
+    return ()=>{ dialog.removeEventListener('cancel', cancel); dialog.removeEventListener('click', click); dialog.close(); requestAnimationFrame(()=>{
+      const target=lastFocus.current;
+      if(target?.isConnected&&!target.disabled)target.focus();
+      else document.querySelector('#drive-controls button, .garage-read-button, .brand')?.focus();
+    }); };
   },[]);
   const Content = sectionComponents[exit.id];
-  return <dialog className="stop-dialog" ref={modal} aria-labelledby="stop-title"><div className="stop-shell"><div className="stop-header"><span><Navigation size={17}/><span id="stop-title">EXIT {exit.number} · {exit.title.toUpperCase()}</span></span><button className="icon-button" onClick={onBack} aria-label="Close and return to the road"><X size={20}/></button></div><div className="stop-scroll"><Content compact/></div><div className="stop-bottom"><button className="text-link" onClick={onGarage}><RotateCcw size={15}/> Return to garage</button><button className="start-button" onClick={onBack}>BACK ON THE ROAD <ArrowRight size={18}/></button></div></div></dialog>;
+  return <dialog className={`stop-dialog ${origin==='garage'?'garage-stop':''}`} ref={modal} aria-labelledby="stop-title"><div className="stop-shell"><div className="stop-header"><span><Navigation size={17}/><span id="stop-title">{origin==='garage'?'THE GARAGE':'EXIT '+exit.number} · {exit.title.toUpperCase()}</span></span><button className="icon-button" onClick={onBack} aria-label={origin==='garage'?'Close and return to the garage':'Close and return to the road'}><X size={20}/></button></div><div className="stop-scroll"><Content compact/></div><div className="stop-bottom">{origin==='drive'&&<button className="text-link" onClick={onGarage}><RotateCcw size={15}/> Return to garage</button>}<button className="start-button" onClick={onBack}>{origin==='garage'?'BACK TO GARAGE':'BACK ON THE ROAD'} <ArrowRight size={18}/></button></div></div></dialog>;
 }
 
 function Drive({ speed, ready, activeExit, navigatingExit, maneuver, maneuverProgress, onSelect, onBack, onGarage, onRev, onHorn, rev, honking, muted, onMute }) {
@@ -187,10 +193,15 @@ export default function App() {
   const [honking, setHonking] = useState(false);
   const [transition, setTransition] = useState(null);
   const [run, setRun] = useState(0);
+  const [garageSection, setGarageSection] = useState(null);
+  const [readAll, setReadAll] = useState(false);
+  const returnConsumed = useRef(false);
   const timers = useRef({});
   const initialSpeed = useRef(0);
-  const latest = useRef({mode,speed,transition});
-  latest.current = {mode,speed,transition};
+  const latest = useRef({mode,speed,transition,maneuver});
+  latest.current = {mode,speed,transition,maneuver};
+
+  useEffect(()=>audio.subscribe(({revving})=>setRev(revving?1:0)),[]);
 
   useEffect(()=>{
     document.body.classList.toggle('in-drive', mode === 'drive');
@@ -225,7 +236,7 @@ export default function App() {
       setManeuverProgress(eased);
       setSpeed(Math.round(maneuver === 'exiting' ? 180*(1-eased) : 65*eased));
       if (progress < 1) frame = requestAnimationFrame(tick);
-      else if (maneuver === 'exiting') { setManeuver('parked'); setActiveExit(navigatingExit); }
+      else if (maneuver === 'exiting') { audio.park(); setManeuver('parked'); setActiveExit(navigatingExit); }
       else { initialSpeed.current = 65; setManeuverProgress(0); setManeuver('cruising'); setNavigatingExit(null); setRun(value=>value+1); }
     }
     frame = requestAnimationFrame(tick);
@@ -236,7 +247,7 @@ export default function App() {
   useEffect(()=>{
     const visibility = ()=>{
       if (document.hidden) audio.stop();
-      else if (latest.current.mode === 'drive' && !latest.current.transition) audio.resume(latest.current.speed);
+      else if (latest.current.mode === 'drive' && !latest.current.transition) audio.resume(latest.current.speed,{parked:latest.current.maneuver==='parked'});
     };
     document.addEventListener('visibilitychange',visibility);
     return ()=>document.removeEventListener('visibilitychange',visibility);
@@ -244,34 +255,47 @@ export default function App() {
   useEffect(()=>()=>{ Object.values(timers.current).forEach(clearTimeout); audio.stop(); },[]);
 
   function mute() { setMuted(audio.toggleMute()); }
-  function revEngine() { audio.rev(); setRev(1); clearTimeout(timers.current.rev); timers.current.rev=setTimeout(()=>setRev(0),4000); }
+  function revEngine() { audio.rev(); }
   function horn() { audio.horn(); setHonking(true); clearTimeout(timers.current.horn); timers.current.horn=setTimeout(()=>setHonking(false),1800); }
   function start() {
     if (transition || mode === 'drive') return;
-    audio.start(); setTransition('ignition'); setSpeed(0); setReady(false); setRun(1); initialSpeed.current=0;
+    audio.start(); setGarageSection(null); setReadAll(false); returnConsumed.current=false; setTransition('ignition'); setSpeed(0); setReady(false); setRun(1); initialSpeed.current=0;
     setActiveExit(null); setNavigatingExit(null); setManeuver('cruising'); setManeuverProgress(0);
     timers.current.start=setTimeout(()=>{ setMode('drive'); setTransition(null); },1800);
   }
   function garage() {
     if (transition) return;
-    if (mode === 'garage') { document.getElementById('home')?.scrollIntoView({behavior:'smooth'}); return; }
+    if (mode === 'garage') { setGarageSection(null); document.getElementById('garage-room')?.scrollIntoView({behavior:'smooth'}); return; }
     setTransition('garage'); audio.garage(); setActiveExit(null); setReady(false);
     timers.current.garage=setTimeout(()=>{
-      setMode('garage'); setSpeed(0); setTransition(null); setNavigatingExit(null); setManeuver('cruising'); setManeuverProgress(0);
+      setMode('garage'); setGarageSection(null); setReadAll(false); setSpeed(0); setTransition(null); setNavigatingExit(null); setManeuver('cruising'); setManeuverProgress(0);
       requestAnimationFrame(()=>window.scrollTo({top:0}));
     },1000);
   }
   function home() {
     Object.values(timers.current).forEach(clearTimeout); audio.stop();
-    setMode('landing'); setSpeed(0); setReady(false); setRev(0); setHonking(false); setTransition(null);
+    setMode('landing'); setGarageSection(null); setReadAll(false); setSpeed(0); setReady(false); setRev(0); setHonking(false); setTransition(null);
     setActiveExit(null); setNavigatingExit(null); setManeuver('cruising'); setManeuverProgress(0);
     requestAnimationFrame(()=>window.scrollTo({top:0}));
   }
   function chooseExit(exit) {
     if (!ready || maneuver !== 'cruising') return;
-    setReady(false); setNavigatingExit(exit); setManeuver('exiting');
+    returnConsumed.current=false; setReady(false); setNavigatingExit(exit); setManeuver('exiting');
   }
-  function back() { setActiveExit(null); setReady(false); setManeuverProgress(0); setManeuver('returning'); audio.resume(0); }
+  function back() {
+    if(!canReturnToRoad(latest.current,returnConsumed.current))return;
+    returnConsumed.current=true; audio.beginMerge();
+    setActiveExit(null); setReady(false); setManeuverProgress(0); setManeuver('returning');
+  }
+  function openGarageSection(id) {
+    if(mode==='garage'&&!transition&&garageDestination(id)&&id!=='drive')setGarageSection(id);
+  }
+  function showPortfolio() {
+    setReadAll(true);requestAnimationFrame(()=>document.getElementById('garage-portfolio')?.scrollIntoView({behavior:'smooth'}));
+  }
+  function closePortfolio() {
+    setReadAll(false);requestAnimationFrame(()=>{document.getElementById('garage-room')?.scrollIntoView({behavior:'smooth'});document.querySelector('.garage-read-button')?.focus({preventScroll:true});});
+  }
 
   useEffect(()=>{
     function key(event) {
@@ -285,8 +309,12 @@ export default function App() {
 
   const landing = mode === 'landing';
   return <>
-    <a href={mode==='drive'?'#drive-controls':landing?'#mode-choice':'#projects'} className="skip-navigation">Skip to {mode==='drive'?'ride controls':landing?'mode choice':'projects'}</a>
-    {mode === 'drive' ? <Drive speed={speed} ready={ready} activeExit={activeExit} navigatingExit={navigatingExit} maneuver={maneuver} maneuverProgress={maneuverProgress} onSelect={chooseExit} onBack={back} onGarage={garage} onRev={revEngine} onHorn={horn} rev={rev} honking={honking} muted={muted} onMute={mute}/> : <>
+    <a href={mode==='drive'?'#drive-controls':landing?'#mode-choice':'#garage-directory'} className="skip-navigation">Skip to {mode==='drive'?'ride controls':landing?'mode choice':'garage directory'}</a>
+    {mode === 'drive' ? <Drive speed={speed} ready={ready} activeExit={activeExit} navigatingExit={navigatingExit} maneuver={maneuver} maneuverProgress={maneuverProgress} onSelect={chooseExit} onBack={back} onGarage={garage} onRev={revEngine} onHorn={horn} rev={rev} honking={honking} muted={muted} onMute={mute}/> : mode === 'garage' ? <>
+      <GarageHub brand={<Brand onClick={home}/>} onStart={start} onSection={openGarageSection} onReadAll={showPortfolio} muted={muted} onMute={mute} onRev={revEngine} onHorn={horn} revving={!!rev} honking={honking} locked={!!transition||!!garageSection}/>
+      {readAll&&<><div className="garage-portfolio-header" id="garage-portfolio" tabIndex="-1"><h2>The complete portfolio.</h2><button onClick={closePortfolio}><RotateCcw size={15}/> Back to the garage</button></div><RouteMap onStart={start} onSelect={()=>{}}/><Projects/><Teams/><Journey/><Skills/><Contact/><Footer onStart={start}/></>}
+      {garageSection&&<StopDialog origin="garage" exit={garageDestination(garageSection)} onBack={()=>setGarageSection(null)} onGarage={()=>setGarageSection(null)}/>}
+    </> : <>
       <Header landing={landing} onStart={start} muted={muted} onMute={mute} garage={home}/>
       <main className={landing ? 'landing-page' : 'garage-page'}><GarageHero landing={landing} onGarage={garage} onStart={start} onRev={revEngine} onHorn={horn} revving={!!rev} honking={honking}/>
         {!landing && <><RouteMap onStart={start} onSelect={()=>{}}/><Projects/><Teams/><Journey/><Skills/><Contact/></>}

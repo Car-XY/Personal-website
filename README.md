@@ -1,6 +1,6 @@
 # CAR—XY · Cary Li
 
-A custom React and Three.js portfolio: a dedicated landing page, an interactive navy Audi R8 garage, a top-down 2D Ontario highway ride, and a complete static portfolio.
+A React and Three.js portfolio: a dedicated landing page, an interactive workshop with a navy Audi R8, a top-down Ontario highway ride, and a complete readable portfolio.
 
 ## Run locally
 
@@ -22,15 +22,16 @@ npm run preview
 - **Landing page:** choose Enter the Garage or Test Drive Car-XY. Portfolio sections mount only after a mode is chosen.
 - **Test drive:** a recorded R8 sample, followed by acceleration to 180 km/h in a flat 2D map.
 - **Green exit signs:** reveal a straight shared off-ramp with an open highway junction. The car takes the ramp before Projects, Design Teams, Journey, Skills, or Contact opens in an accessible native dialog.
-- **Back on the road:** drive forward along a separate on-ramp, merge onto the highway, and choose another exit.
-- **Highway scenery:** evergreen trees and lane markings scroll with one shared world offset; wind trails follow the car at speed. A level real-engine recording loops continuously through Web Audio at cruising speed.
-- **Return to garage:** show the full scrollable portfolio, including résumé and contact links.
+- **Back on the road:** play a recorded rev once, drive forward along a separate on-ramp, then settle into the steady cruise recording.
+- **Highway scenery:** evergreen trees and lane markings use one shared world offset. At 180 km/h the map moves at 1,120 SVG units/second, calibrated against the car sprite with a 0.8 presentation scale. Wind trails follow the car.
+- **Garage:** open Projects at the workbench, Design Teams at the racing rack, Journey at the story wall, Skills at the tool chest, and Contact at the communications station. The R8 starts a test drive. Labels and an accessible directory support keyboard and touch navigation.
+- **Read portfolio:** show all content without driving or requiring WebGL. Garage panels return to the room; highway panels return via the on-ramp.
 - **R:** rev the engine. **H:** honk. **M:** toggle sound. **Escape:** close an exit.
 - **Drag the car:** orbit the detailed 3D model, including Car-XY plates, a sealed underside, and a basic cabin.
 
 The site respects reduced-motion preferences, stops audio when hidden, and keeps all portfolio content accessible if WebGL is unavailable. Audio starts only after a user gesture. All engine clips, the model, and its decoder are served locally.
 
-Content lives in `src/data.js` and `src/App.jsx`; route labels, instrument functions, and ramp geometry in `src/drive.js`; recorded sound in `src/audio.js`; 2D driving in `src/TopDownDrive.jsx`; garage rendering in `src/Scene.jsx`; model repairs in `src/car-details.js`.
+Content lives in `src/data.js` and `src/App.jsx`; road motion and ramp geometry in `src/drive.js`; recorded sound in `src/audio.js`; 2D driving in `src/TopDownDrive.jsx`; the garage interface and room in `src/GarageHub.jsx` and `src/GarageRoom.jsx`; the landing car viewer in `src/Scene.jsx`; model repairs in `src/car-details.js`.
 
 Model optimization is reproducible with `node scripts/optimize-model.mjs` after placing the original model at `tmp/audi-original.glb` and reference image at `tmp/r8-reference.png`.
 

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { EXITS, speedAt, gearAt, rpmAt, exitPose, entryPose, OFF_RAMP, ON_RAMP, rampGap, highwayEdgePath, advanceWorld, WORLD_PERIOD } from '../src/drive.js';
+import { EXITS, speedAt, gearAt, rpmAt, exitPose, entryPose, OFF_RAMP, ON_RAMP, rampGap, highwayEdgePath, advanceWorld, WORLD_PERIOD, WORLD_UNITS_PER_METRE, MOTION_SCALE } from '../src/drive.js';
 import { existsSync, readFileSync } from 'node:fs';
 
 test('a ride accelerates smoothly, reaches 180, and never exceeds it', () => {
@@ -85,11 +85,14 @@ test('highway border opens across the full width of both straight ramps', () => 
 
 test('world moves downward at frame-rate-independent speed with a seamless repeat', () => {
   const once=advanceWorld(0,180,1);
-  let frames=0;
-  for(let i=0;i<60;i++) frames=advanceWorld(frames,180,1/60);
-  assert.ok(once>0);
-  assert.ok(Math.abs(once-frames)<1e-8);
+  for(const fps of [30,60,120]) {
+    let frames=0;
+    for(let i=0;i<fps;i++)frames=advanceWorld(frames,180,1/fps);
+    assert.ok(Math.abs(once-frames)<1e-8);
+  }
+  assert.equal(once,1120);
+  assert.equal(once,50*WORLD_UNITS_PER_METRE*MOTION_SCALE);
   assert.equal(advanceWorld(123,0,1),123);
   for(const period of [84,250,15,60]) assert.equal(WORLD_PERIOD%period,0);
-  assert.ok(advanceWorld(WORLD_PERIOD-1,180,.1)<100);
+  assert.ok(Math.abs(advanceWorld(WORLD_PERIOD-1,180,.1)-111)<1e-8);
 });

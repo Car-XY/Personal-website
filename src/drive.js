@@ -25,9 +25,12 @@ export const HIGHWAY = { left:350, right:650 };
 export const OFF_RAMP = { start:{x:600,y:330}, end:{x:1020,y:-238.2352941176} };
 export const ON_RAMP = { start:{x:600,y:600}, end:{x:1000,y:1174.1176470588} };
 export const WORLD_PERIOD = 10500; // A whole number of every repeating pattern.
+// A 126-unit sprite represents roughly 4.5 m; 80% scale keeps the map readable.
+export const WORLD_UNITS_PER_METRE = 126 / 4.5;
+export const MOTION_SCALE = .8;
 
 export function advanceWorld(offset,speed,seconds) {
-  return (offset + Math.max(0,speed) * Math.max(0,seconds) * 1.45) % WORLD_PERIOD;
+  return (offset + Math.max(0,speed) / 3.6 * WORLD_UNITS_PER_METRE * MOTION_SCALE * Math.max(0,seconds)) % WORLD_PERIOD;
 }
 
 function cubicPose(points,t) {
