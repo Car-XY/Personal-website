@@ -4,6 +4,7 @@ import { dedup, prune, weld, simplify, draco } from '@gltf-transform/functions';
 import { MeshoptSimplifier } from 'meshoptimizer';
 import draco3d from 'draco3dgltf';
 import { Color } from 'three';
+import { createHash } from 'node:crypto';
 import { mkdir, copyFile, stat } from 'node:fs/promises';
 
 await MeshoptSimplifier.ready;
@@ -12,6 +13,23 @@ const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies(
   'draco3d.decoder': await draco3d.createDecoderModule(),
 });
 const document = await io.read('tmp/audi-original.glb');
+// Some source meshes repeat the exact same surface for every material slot.
+// Keep the first surface to avoid z-fighting and white material overlays.
+let duplicates = 0;
+for (const mesh of document.getRoot().listMeshes()) {
+  const seen = new Set();
+  for (const primitive of mesh.listPrimitives()) {
+    const hash = createHash('sha256');
+    for (const accessor of [primitive.getAttribute('POSITION'), primitive.getAttribute('NORMAL'), primitive.getIndices()]) {
+      const array = accessor?.getArray();
+      if (array) hash.update(new Uint8Array(array.buffer, array.byteOffset, array.byteLength));
+    }
+    const key = hash.digest('hex');
+    if (seen.has(key)) { mesh.removePrimitive(primitive); primitive.dispose(); duplicates++; }
+    else seen.add(key);
+  }
+}
+console.log('Removed duplicate overlapping surfaces:', duplicates);
 // The source supplies named but uncoloured materials. Set each part before
 // deduplication so physically different surfaces are never merged together.
 for (const material of document.getRoot().listMaterials()) {
