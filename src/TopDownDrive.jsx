@@ -45,7 +45,9 @@ export default function TopDownDrive({ speed, branchVisible, maneuver, maneuverP
   useEffect(()=>{
     const observer=new ResizeObserver(([entry])=>{
       const {width,height}=entry.contentRect;
-      svg.current?.setAttribute('viewBox',width/height < .8 ? '300 -160 560 1040' : '0 0 1000 760');
+      const worldWidth=760*width/height;
+      // Keep the entire ramp junction in view on wide screens instead of cropping it.
+      svg.current?.setAttribute('viewBox',width/height < .8 ? '300 -160 560 1040' : `${500-worldWidth/2} 0 ${worldWidth} 760`);
     });
     observer.observe(host.current); return ()=>observer.disconnect();
   },[]);
