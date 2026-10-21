@@ -41,15 +41,15 @@ export default function Scene({ driving = false, speed = 0, onReady, onError }) 
       mesh.position.set(x, y, z); scene.add(mesh); return mesh;
     }
     if (!driving) {
-      camera.position.set(7.5, 2.7, 8.4);
+      camera.position.set(8.2, 2.3, 7);
       controls = new OrbitControls(camera, renderer.domElement);
       controls.target.set(0, 0.9, 0);
       controls.enablePan = false; controls.enableZoom = false;
-      controls.minPolarAngle = Math.PI / 3.4; controls.maxPolarAngle = Math.PI / 2.05;
+      controls.minPolarAngle = Math.PI / 2.55; controls.maxPolarAngle = Math.PI / 2.05;
       controls.minAzimuthAngle = -Math.PI; controls.maxAzimuthAngle = Math.PI;
       controls.enableDamping = true; controls.dampingFactor = 0.06;
       controls.update();
-      scene.add(new THREE.HemisphereLight('#c6dbdf', '#32352c', 2));
+      scene.add(new THREE.HemisphereLight('#c6d8ef', '#1a253b', 2));
       const key = new THREE.DirectionalLight('#ecf8ff', 6);
       key.position.set(2, 7, 5); key.castShadow = true;
       key.shadow.mapSize.set(2048, 2048);
@@ -57,7 +57,7 @@ export default function Scene({ driving = false, speed = 0, onReady, onError }) 
       key.shadow.bias = -0.0003; key.shadow.normalBias = 0.03;
       scene.add(key);
       const rim = new THREE.DirectionalLight('#adc9ff', 5); rim.position.set(-4, 2, -3); scene.add(rim);
-      const warm = new THREE.DirectionalLight('#e5f6bf', 2); warm.position.set(-4, 3, 3); scene.add(warm);
+      const warm = new THREE.DirectionalLight('#dbe9ff', 2); warm.position.set(-4, 3, 3); scene.add(warm);
       const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.ShadowMaterial({ color: '#000000', opacity: 0.48 }));
       floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; floor.position.y = -0.015; scene.add(floor);
       const loader = new GLTFLoader();

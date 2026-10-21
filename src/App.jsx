@@ -1,5 +1,5 @@
 import { Component, Suspense, lazy, useEffect, useRef, useState } from 'react';
-import { ArrowUpRight, ArrowRight, ArrowDown, Volume2, VolumeX, Download, Github, Linkedin, Menu, X, Power, Gauge, MapPin, RotateCcw, CircleHelp, ChevronRight, Mail, ExternalLink, Check, Navigation, Hand, CarFront, AudioLines, Megaphone } from 'lucide-react';
+import { ArrowUpRight, ArrowRight, ArrowDown, Volume2, VolumeX, Download, Github, Linkedin, Menu, X, Power, Gauge, MapPin, RotateCcw, CircleHelp, ExternalLink, Check, Navigation, Hand, CarFront, AudioLines, Megaphone } from 'lucide-react';
 import { EXITS, speedAt, gearAt, rpmAt } from './drive.js';
 import { links, projects, skills } from './data.js';
 import { audio } from './audio.js';
@@ -145,8 +145,6 @@ export default function App() {
   const [driveSceneReady, setDriveSceneReady] = useState(false);
   const [run, setRun] = useState(0);
   const timers = useRef({});
-  const storedScroll = useRef(0);
-  const startButton = useRef(null);
 
   useEffect(()=>{
     document.body.classList.toggle('in-drive', mode === 'drive');
@@ -170,7 +168,7 @@ export default function App() {
 
   useEffect(()=>{ audio.update(activeExit ? 0 : speed, rev); },[speed,rev,activeExit]);
   useEffect(()=>{
-    const hide = ()=>{ if (document.hidden) { audio.stop(); } else if (mode === 'drive') { audio.active = true; audio.update(speed); } };
+    const hide = ()=>{ if (document.hidden) { audio.stop(); } else if (mode === 'drive') { audio.resume(speed); } };
     document.addEventListener('visibilitychange', hide);
     return ()=>document.removeEventListener('visibilitychange',hide);
   },[mode,speed]);
@@ -181,7 +179,6 @@ export default function App() {
   function horn() { audio.horn(); setHonking(true); clearTimeout(timers.current.horn); timers.current.horn=setTimeout(()=>setHonking(false),450); }
   function start() {
     if (transition || mode === 'drive') return;
-    storedScroll.current = window.scrollY;
     audio.start(); setTransition('ignition'); setSpeed(0); setReady(false); setRun(1);
     timers.current.start = setTimeout(()=>{ setMode('drive'); setDriveSceneReady(false); setTransition(null); },1800);
   }

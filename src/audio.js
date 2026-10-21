@@ -4,7 +4,9 @@ class DriveAudio {
   constructor() {
     this.muted = false;
     this.active = false;
+    this.isRevving = false;
     this.sampleAvailable = false;
+    this.lastSpeed = 0;
     this.sample = new Audio('/audio/r8-engine.mp3');
     this.sample.preload = 'none';
     this.revSample = new Audio('/audio/r8-rev.mp3');
@@ -63,22 +65,22 @@ class DriveAudio {
     this.sample.play().catch(() => {});
   }
   update(speed, rev = 0) {
+    this.lastSpeed = speed;
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
     this.oscillators.forEach(({ oscillator, harmonic }) => oscillator.frequency.setTargetAtTime((35 + speed * 0.26 + rev * 85) * harmonic, now, 0.15));
-    this.engineGain.gain.setTargetAtTime(this.active ? (this.sampleAvailable && !this.sample.paused ? 0.15 : 0.4) + rev * 0.4 : 0, now, 0.25);
+    this.engineGain.gain.setTargetAtTime(this.active || this.isRevving ? (this.sampleAvailable && !this.sample.paused ? 0.15 : 0.4) + rev * 0.4 : 0, now, 0.25);
     this.windGain.gain.setTargetAtTime(this.active ? speed / 500 : 0, now, 0.5);
     this.cruise.playbackRate = 0.85 + speed / 400;
   }
   async rev() {
     await this.unlock();
-    const wasActive = this.active;
-    this.active = true;
+    this.isRevving = true;
     this.revSample.currentTime = 0; this.revSample.volume = 0.6;
     this.revSample.play().catch(() => {});
-    this.update(0, 1);
+    this.update(this.lastSpeed, 1);
     clearTimeout(this.revTimeout);
-    this.revTimeout = setTimeout(() => { this.active = wasActive; this.update(0); }, 1700);
+    this.revTimeout = setTimeout(() => { this.isRevving = false; this.update(this.lastSpeed); }, 1700);
   }
   async horn() {
     await this.unlock();
@@ -104,7 +106,15 @@ class DriveAudio {
     gain.gain.linearRampToValueAtTime(0, now + 1.5);
     motor.connect(gain).connect(this.master); motor.start(); motor.stop(now + 1.5);
   }
-  stop() { clearTimeout(this.revTimeout); clearTimeout(this.cruiseTimeout); this.active = false; this.sample.pause(); this.revSample.pause(); this.cruise.pause(); this.update(0); }
+  stop() { clearTimeout(this.revTimeout); clearTimeout(this.cruiseTimeout); this.active = false; this.isRevving = false; this.sample.pause(); this.revSample.pause(); this.cruise.pause(); this.update(0); }
+  resume(speed) {
+    this.active = true;
+    this.unlock().then(() => {
+      this.update(speed);
+      this.cruise.volume = 0.22;
+      this.cruise.play().catch(() => {});
+    });
+  }
   toggleMute() {
     this.muted = !this.muted; this.sample.muted = this.muted; this.revSample.muted = this.muted; this.cruise.muted = this.muted;
     if (this.master) this.master.gain.setTargetAtTime(this.muted ? 0 : 0.3, this.ctx.currentTime, 0.1);

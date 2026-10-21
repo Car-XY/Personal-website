@@ -10,13 +10,13 @@ export const projects = [
     title: 'Kera', kind: 'HEALTHCARE × MACHINE LEARNING', year: '2026', visual: 'kera',
     description: 'A different lens on everyday care. An experimental, photo-based hemoglobin estimator built at Hack the Valley.',
     detail: 'Trained an ensemble of three PyTorch neural networks using 42 standardized colour features. Five-fold grouped cross-validation and 50 held-out patient records produced a mean absolute error of 15.96 g/L. An experimental research project; clinical validation is still ahead.',
-    tags: ['Python', 'PyTorch', 'scikit-learn'], href: 'https://keracare.health', cta: 'Explore Kera',
+    tags: ['Python', 'PyTorch', 'scikit-learn'], href: 'https://www.keracare.health/', cta: 'Explore Kera',
   },
   {
     title: 'ClearPath', kind: 'SPATIAL DESIGN × WEB', year: '2026', visual: 'clearpath',
     description: 'Make room for better ideas. A browser-based room planner with synchronized 3D and top-down views.',
     detail: 'Combines photo-based room estimates, furniture editing, and A* routing with collision and clearance checks, helping people compare practical layouts before moving a single piece of furniture.',
-    tags: ['TypeScript', 'React', 'Three.js'], href: links.github, cta: 'View GitHub',
+    tags: ['TypeScript', 'React', 'Three.js'], href: 'https://github.com/Car-XY/ClearPath', cta: 'View ClearPath on GitHub',
   },
   {
     title: 'Anchor', kind: 'PRODUCTIVITY × DESKTOP', year: '2026', visual: 'anchor',
