@@ -5,11 +5,11 @@ import wave
 import numpy as np
 
 parser = argparse.ArgumentParser()
-parser.add_argument('source', nargs='?', default='tmp/r8-full.wav')
-parser.add_argument('--start', type=float, default=210.25)
-parser.add_argument('--end', type=float, default=218.25)
-parser.add_argument('--crossfade', type=float, default=.18)
-parser.add_argument('--output', default='public/audio/r8-cruise-steady.wav')
+parser.add_argument('source', nargs='?', default='tmp/new-r8-source.wav')
+parser.add_argument('--start', type=float, default=22)
+parser.add_argument('--end', type=float, default=34)
+parser.add_argument('--crossfade', type=float, default=.12)
+parser.add_argument('--output', default='public/audio/engine-cruise.wav')
 args = parser.parse_args()
 with wave.open(args.source, 'rb') as stream:
     if stream.getsampwidth() != 2:

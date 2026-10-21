@@ -1,5 +1,5 @@
 import { Component, Suspense, lazy, useState } from 'react';
-import { ArrowRight, ArrowUpRight, BookOpen, CarFront, Flag, Gauge, Laptop, Map, Megaphone, Radio, Volume2, VolumeX, Wrench } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, BookOpen, CarFront, Flag, Gauge, Laptop, Map, Radio, Volume2, VolumeX, Wrench } from 'lucide-react';
 import { GARAGE_OBJECTS, garageDestination, layoutGarageLabels } from './garage.js';
 
 const GarageRoom = lazy(()=>import('./GarageRoom.jsx'));
@@ -24,7 +24,7 @@ function RoomFallback() {
   </svg><img src="/images/r8-reference.png" alt=""/></div>;
 }
 
-export default function GarageHub({brand,onStart,onSection,onReadAll,muted,onMute,onRev,onHorn,revving,honking,locked}) {
+export default function GarageHub({brand,onStart,onSection,onReadAll,muted,onMute,onRev,revving,locked}) {
   const [highlighted,setHighlighted]=useState(null),[layout,setLayout]=useState(null),[loaded,setLoaded]=useState(false),[failed,setFailed]=useState(false);
   const choose=(id,fromCanvas=false)=>{
     if(locked||!garageDestination(id))return;
@@ -53,6 +53,6 @@ export default function GarageHub({brand,onStart,onSection,onReadAll,muted,onMut
       <div className="garage-room-caption"><span>ONE CAR. A LOT OF POSSIBILITIES.</span><span>{failed?'USE THE LABELS OR DIRECTORY TO EXPLORE':'CLICK AN OBJECT TO EXPLORE'} <ArrowUpRight size={12}/></span></div>
     </div>
     <nav className="garage-object-directory" id="garage-directory" tabIndex="-1" aria-label="Garage directory">{GARAGE_OBJECTS.map(object=>{const Icon=icons[object.id];return <button key={object.id} data-garage-link={object.id} onClick={()=>choose(object.id)} onFocus={()=>setHighlighted(object.id)} onBlur={()=>setHighlighted(null)} onPointerEnter={()=>setHighlighted(object.id)} onPointerLeave={()=>setHighlighted(null)} disabled={locked}><Icon size={17}/><span><small>{object.object}</small><strong>{object.title}</strong></span><ArrowUpRight size={13}/></button>;})}</nav>
-    <div className="garage-room-bottom"><div className="garage-r8-spec"><span className="r8-emblem"><i/>R8</span><span>AUDI R8 · 5.2L V10 · 602 HP · QUATTRO<small>NAVY BLUE / CAR-XY</small></span></div><div className="garage-room-controls"><button onClick={onRev}><Gauge size={16}/>{revving?'REVVING…':'REV ENGINE'}<kbd>R</kbd></button><button onClick={onHorn}><Megaphone size={16}/>{honking?'BEEP BEEP!':'HORN'}<kbd>H</kbd></button><button onClick={onReadAll}><BookOpen size={16}/>READ ALL <ArrowRight size={15}/></button></div></div>
+    <div className="garage-room-bottom"><div className="garage-r8-spec"><span className="r8-emblem"><i/>R8</span><span>AUDI R8 · 5.2L V10 · 602 HP · QUATTRO<small>NAVY BLUE / CAR-XY</small></span></div><div className="garage-room-controls"><button onClick={onRev}><Gauge size={16}/>{revving?'REVVING…':'REV ENGINE'}<kbd>R</kbd></button><button onClick={onReadAll}><BookOpen size={16}/>READ ALL <ArrowRight size={15}/></button></div></div>
   </main>;
 }

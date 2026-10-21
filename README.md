@@ -24,10 +24,10 @@ npm run preview
 - **Green exit signs:** reveal a straight shared off-ramp with an open highway junction. The car takes the ramp before Projects, Design Teams, Journey, Skills, or Contact opens in an accessible native dialog.
 - **Back on the road:** play a recorded rev once, drive forward along a separate on-ramp, then settle into the steady cruise recording.
 - **Highway scenery:** evergreen trees and lane markings use one shared world offset. At 180 km/h the map moves at 1,120 SVG units/second, calibrated against the car sprite with a 0.8 presentation scale. Wind trails follow the car.
-- **Garage:** open Projects at the workbench, Design Teams at the racing rack, Journey at the story wall, Skills at the tool chest, and Contact at the communications station. The R8 starts a test drive. Labels and an accessible directory support keyboard and touch navigation.
+- **Garage:** an enclosed industrial workshop with a fixed perspective camera, steel mezzanine, brick walls, fluorescent fixtures, neon tools, and a marked metal service bay. Open Projects at the workbench, Design Teams at the racing rack, Journey at the story wall, Skills at the tool chest, and Contact at the communications station. The R8 starts a test drive. Labels and an accessible directory support keyboard and touch navigation.
 - **Read portfolio:** show all content without driving or requiring WebGL. Garage panels return to the room; highway panels return via the on-ramp.
-- **R:** rev the engine. **H:** honk. **M:** toggle sound. **Escape:** close an exit.
-- **Drag the car:** orbit the detailed 3D model, including Car-XY plates, a sealed underside, and a basic cabin.
+- **R:** rev the engine. **M:** toggle sound. **Escape:** close an exit.
+- **Drag the landing-page car:** orbit the detailed 3D model, including Car-XY plates, a sealed underside, and a basic cabin.
 
 The site respects reduced-motion preferences, stops audio when hidden, and keeps all portfolio content accessible if WebGL is unavailable. Audio starts only after a user gesture. All engine clips, the model, and its decoder are served locally.
 

@@ -1,17 +1,16 @@
-// Road audio uses local recordings. The garage door has its own brief motor effect.
+// Three local excerpts: ignition, rev and an unpitched, continuous cruise loop.
 export class DriveAudio {
   constructor() {
     this.muted = false; this.active = false; this.parked = false;
     this.isRevving = false; this.lastSpeed = 0;
     this.generation = 0; this.revToken = 0; this.listeners = new Set();
-    this.sample = this.clip('/audio/r8-engine.mp3');
-    this.revSample = this.clip('/audio/r8-rev.mp3');
-    this.cruise = this.clip('/audio/r8-cruise-steady.wav');
-    this.hornSample = this.clip('/audio/car-horn.mp3');
+    this.sample = this.clip('/audio/engine-start.mp3');
+    this.revSample = this.clip('/audio/engine-rev.mp3');
+    this.cruise = this.clip('/audio/engine-cruise.wav');
     this.cruise.loop = true;
   }
   clip(src) { const clip = new Audio(src); clip.preload = 'none'; return clip; }
-  get clips() { return [this.sample, this.revSample, this.cruise, this.hornSample]; }
+  get clips() { return [this.sample, this.revSample, this.cruise]; }
   subscribe(listener) {
     this.listeners.add(listener); listener({ revving:this.isRevving });
     return () => this.listeners.delete(listener);
@@ -26,7 +25,7 @@ export class DriveAudio {
       this.cruiseGain = this.ctx.createGain(); this.cruiseGain.gain.value = 0;
       this.cruiseGain.connect(this.ctx.destination);
     }
-    this.cruiseBufferPromise ??= fetch('/audio/r8-cruise-steady.wav')
+    this.cruiseBufferPromise ??= fetch('/audio/engine-cruise.wav')
       .then(response => { if (!response.ok) throw new Error('Recording unavailable'); return response.arrayBuffer(); })
       .then(bytes => this.ctx.decodeAudioData(bytes))
       .catch(() => { this.cruiseBufferPromise = null; return null; });
@@ -35,7 +34,7 @@ export class DriveAudio {
   async playCruise() {
     const generation = this.generation;
     const buffer = await this.prepareCruise().catch(() => null);
-    if (!this.active || generation !== this.generation || document.hidden) return;
+    if (!this.active || this.starting || generation !== this.generation || document.hidden) return;
     this.sample.pause();
     if (!buffer) {
       this.syncVolume();
@@ -56,17 +55,34 @@ export class DriveAudio {
     try { Promise.resolve(clip.play()).catch(onError); } catch { onError(); }
   }
   start() {
-    this.stop(); this.active = true;
+    this.stop(); this.active = true; this.starting = true;
     const generation = this.generation;
     this.prepareCruise().catch(() => {});
-    this.play(this.sample, .5);
-    this.cruiseTimeout = setTimeout(() => {
-      if (this.generation === generation && this.active && !document.hidden) this.playCruise();
-    }, 6500);
+    const finish = () => {
+      if (generation !== this.generation || !this.starting) return;
+      this.clearStart();
+      if (this.active && !this.parked && !document.hidden) this.playCruise();
+    };
+    const safetyTimer = () => {
+      clearTimeout(this.cruiseTimeout);
+      const duration = Number.isFinite(this.sample.duration) && this.sample.duration > 0 ? this.sample.duration : 6;
+      this.cruiseTimeout = setTimeout(finish, Math.min(15000, duration * 1000 + 500));
+    };
+    this.sample.addEventListener('ended',finish); this.sample.addEventListener('error',finish);
+    this.sample.addEventListener('loadedmetadata',safetyTimer);
+    this.startCleanup = () => {
+      this.sample.removeEventListener('ended',finish); this.sample.removeEventListener('error',finish);
+      this.sample.removeEventListener('loadedmetadata',safetyTimer);
+    };
+    safetyTimer(); this.play(this.sample,.5,true,finish);
+  }
+  clearStart() {
+    clearTimeout(this.cruiseTimeout); this.startCleanup?.(); this.startCleanup = null;
+    this.starting = false; this.sample.pause();
   }
   update(speed) { this.lastSpeed = speed; this.syncVolume(); }
   syncVolume() {
-    const volume = this.active && !this.parked && !this.isRevving ? .22 : 0;
+    const volume = this.active && !this.starting && !this.parked && !this.isRevving ? .22 : 0;
     this.cruise.volume = volume; this.cruise.muted = this.muted;
     const target = this.muted || !this.cruiseSource ? 0 : volume;
     if (this.cruiseGain && target !== this.gainTarget) {
@@ -85,9 +101,10 @@ export class DriveAudio {
     this.clearRev(); this.syncVolume(); this.notify();
   }
   rev() {
+    this.clearStart();
     this.clearRev(); this.isRevving = true;
     const token = this.revToken;
-    const voice = this.clip('/audio/r8-rev.mp3'); this.revSample = voice;
+    const voice = this.clip('/audio/engine-rev.mp3'); this.revSample = voice;
     const finish = () => this.finishRev(token);
     const safetyTimer = () => {
       if (token !== this.revToken || !this.isRevving) return;
@@ -103,42 +120,24 @@ export class DriveAudio {
     };
     this.syncVolume(); this.notify(); safetyTimer();
     this.play(voice, .6, true, finish);
+    if (this.active) this.playCruise();
   }
   beginMerge() {
     this.active = true; this.parked = false;
     this.rev(); this.playCruise();
   }
   park() {
-    this.parked = true; this.clearRev(); this.sample.pause();
+    this.parked = true; this.clearStart(); this.clearRev();
     this.syncVolume(); this.notify();
   }
-  horn() { this.play(this.hornSample, .5); }
-  async garage() {
-    this.stop();
-    const generation=this.generation;
-    const Context = window.AudioContext || window.webkitAudioContext;
-    if (!Context || this.muted) return;
-    try {
-      this.ctx ??= new Context(); await this.ctx.resume();
-      if(generation!==this.generation||this.muted||document.hidden)return;
-      const now = this.ctx.currentTime;
-      const motor = this.ctx.createOscillator(), gain = this.ctx.createGain();
-      motor.type = 'triangle'; motor.frequency.setValueAtTime(90, now);
-      motor.frequency.linearRampToValueAtTime(45, now + 1.2);
-      gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(.065, now + .2);
-      gain.gain.linearRampToValueAtTime(0, now + 1.5);
-      motor.connect(gain).connect(this.ctx.destination); motor.start(); motor.stop(now + 1.5);
-      this.garageGain = gain;
-    } catch { /* Navigation still works without audio support. */ }
-  }
+  garage() { this.stop(); }
   stop() {
-    clearTimeout(this.cruiseTimeout);
+    this.clearStart();
     this.active = false; this.parked = false; this.generation++;
     this.clearRev(); this.clips.forEach(clip => clip.pause());
     if (this.cruiseSource) {
       this.cruiseSource.stop(); this.cruiseSource.disconnect(); this.cruiseSource = null;
     }
-    if (this.garageGain && this.ctx) this.garageGain.gain.setValueAtTime(0, this.ctx.currentTime);
     this.syncVolume(); this.notify();
   }
   resume(speed, { parked = false } = {}) {
@@ -147,7 +146,6 @@ export class DriveAudio {
   toggleMute() {
     this.muted = !this.muted;
     this.clips.forEach(clip => { clip.muted = this.muted; }); this.syncVolume();
-    if (this.muted && this.garageGain && this.ctx) this.garageGain.gain.setValueAtTime(0, this.ctx.currentTime);
     return this.muted;
   }
 }

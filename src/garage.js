@@ -1,10 +1,10 @@
 export const GARAGE_OBJECTS = [
-  { id:'projects', number:'01', title:'Projects', object:'The workbench', point:[-5.4,1.65,-2.6], fallback:[32,45] },
-  { id:'teams', number:'02', title:'Design Teams', object:'The racing rack', point:[5.1,2.5,-3.5], fallback:[73,41] },
-  { id:'journey', number:'03', title:'The Journey', object:'The story wall', point:[-7.2,3.4,.6], fallback:[20,42] },
-  { id:'skills', number:'04', title:'Under the Hood', object:'The tool chest', point:[-5.5,1.35,3.3], fallback:[30,68] },
-  { id:'contact', number:'05', title:'Let’s Connect', object:'The contact station', point:[5.9,2.4,2.5], fallback:[78,67] },
-  { id:'drive', number:'06', title:'Test Drive', object:'Car-XY · the R8', point:[.5,.65,2.4], fallback:[53,72] },
+  { id:'projects', number:'01', title:'Projects', object:'The workbench', point:[-3.75,1.52,.15], fallback:[25,65] },
+  { id:'teams', number:'02', title:'Design Teams', object:'The racing rack', point:[8.8,3.6,-9.5], fallback:[85,40] },
+  { id:'journey', number:'03', title:'The Journey', object:'The story wall', point:[-3.8,2.25,-13.9], fallback:[35,40] },
+  { id:'skills', number:'04', title:'Under the Hood', object:'The tool chest', point:[-6.5,1.45,-4.4], fallback:[18,45] },
+  { id:'contact', number:'05', title:'Let’s Connect', object:'The contact station', point:[6,2,-3.7], fallback:[85,57] },
+  { id:'drive', number:'06', title:'Test Drive', object:'Car-XY · the R8', point:[.7,.8,2.1], fallback:[65,80] },
 ];
 
 export function garageDestination(id) { return GARAGE_OBJECTS.find(object => object.id === id) || null; }

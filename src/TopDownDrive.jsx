@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { exitPose, entryPose, advanceWorld, OFF_RAMP, ON_RAMP, rampPath, highwayEdgePath } from './drive.js';
 
-export function CarSprite({ turning = false, turnSide = 'right', honking = false, speed = 0 }) {
-  return <g className={honking ? 'map-car honking-car' : 'map-car'}>
+export function CarSprite({ turning = false, turnSide = 'right', speed = 0 }) {
+  return <g className="map-car">
     <defs><linearGradient id="map-r8-paint" x1="0" x2="1"><stop stopColor="#102a55"/><stop offset=".3" stopColor="#4271a5"/><stop offset=".52" stopColor="#1d4678"/><stop offset=".84" stopColor="#112e57"/><stop offset="1" stopColor="#08192e"/></linearGradient><linearGradient id="map-r8-glass" x2=".25" y2="1"><stop stopColor="#8ba7ba"/><stop offset=".4" stopColor="#203b51"/><stop offset="1" stopColor="#102332"/></linearGradient><linearGradient id="r8-slipstream" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#d9edff" stopOpacity=".85"/><stop offset="1" stopColor="#c6e3ff" stopOpacity="0"/></linearGradient></defs>
     {speed > 45 && <g className="r8-wake" opacity={Math.min(1,(speed-45)/135)} fill="none" stroke="url(#r8-slipstream)" strokeWidth="1.8" strokeLinecap="round">
       <path d={`M-22 64C-28 88-29 114-25 ${95+speed*.35}`}/><path d={`M22 64C28 88 29 114 25 ${95+speed*.35}`}/>
@@ -25,7 +25,6 @@ export function CarSprite({ turning = false, turnSide = 'right', honking = false
     <rect x="-10" y="54" width="20" height="6" rx="1" fill="#f3f5e9"/><text x="0" y="58.4" textAnchor="middle" fontFamily="sans-serif" fontWeight="700" fontSize="4.3" fill="#143969">Car-XY</text>
     <path d="M-18-60Q0-63 18-60" stroke="#c5dcf0" opacity=".7" fill="none"/>
     {turning && <g className="map-turn-signal" transform={turnSide === 'left' ? 'scale(-1 1)' : undefined} fill="#ffb34d"><rect x="25" y="-47" width="3" height="8" rx="1"/><rect x="24" y="46" width="3" height="7" rx="1"/></g>}
-    {honking && <g fill="none" stroke="#dcecff" strokeWidth="2" className="horn-ripples"><path d="M-37-48Q-46-66-31-79M37-48Q46-66 31-79"/><path d="M-47-49Q-57-70-39-88M47-49Q57-70 39-88"/></g>}
   </g>;
 }
 
@@ -38,7 +37,7 @@ function Ramp({ ramp, name }) {
   </g>;
 }
 
-export default function TopDownDrive({ speed, branchVisible, maneuver, maneuverProgress, honking }) {
+export default function TopDownDrive({ speed, branchVisible, maneuver, maneuverProgress }) {
   const host=useRef(null),svg=useRef(null);
   const lanes=useRef(null),trees=useRef(null),grid=useRef(null),asphalt=useRef(null);
   const currentSpeed=useRef(speed); currentSpeed.current=speed;
@@ -91,7 +90,7 @@ export default function TopDownDrive({ speed, branchVisible, maneuver, maneuverP
       <path d="M358-2000V2400" stroke="#e1c680" strokeWidth="2.5"/>
       <path className="highway-edge" data-junction={activeRamp ? entering ? 'on-ramp' : 'off-ramp' : 'closed'} d={highwayEdgePath(activeRamp)} stroke="#efedde" strokeWidth="2.5" fill="none"/>
       <rect className="highway-lane-markings" x="400" y="-2000" width="200" height="4400" fill="url(#map-lane-lines)"/>
-      <g transform={`translate(${pose.x} ${pose.y}) rotate(${pose.angle})`} data-car-pose="true"><CarSprite speed={speed} turning={maneuver==='exiting' || entering} turnSide={entering ? 'left' : 'right'} honking={honking}/></g>
+      <g transform={`translate(${pose.x} ${pose.y}) rotate(${pose.angle})`} data-car-pose="true"><CarSprite speed={speed} turning={maneuver==='exiting' || entering} turnSide={entering ? 'left' : 'right'}/></g>
     </svg>
   </div>;
 }

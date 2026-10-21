@@ -24,13 +24,13 @@ function setup(t,webAudio=true) {
   const engine=new DriveAudio();t.after(()=>engine.stop());return {engine,sources,gain};
 }
 
-test('revs and horn are recordings; UI follows clip completion rather than a fixed timer',t=>{
+test('recorded rev UI follows clip completion rather than a fixed timer',t=>{
   const {engine}=setup(t,false),states=[];engine.subscribe(state=>states.push(state.revving));
   engine.rev();const old=engine.revSample,oldToken=engine.revToken;
   engine.rev();assert.equal(old.paused,true);engine.finishRev(oldToken);assert.equal(engine.isRevving,true);
   engine.revSample.emit('ended');assert.equal(engine.isRevving,false);assert.equal(engine.active,false);
   assert.deepEqual(states,[false,true,true,false]);
-  engine.horn();assert.equal(engine.hornSample.plays,1);assert.equal(engine.hornSample.currentTime,0);
+  assert.equal(engine.revSample.src,'/audio/engine-rev.mp3');
   assert.equal(engine.toggleMute(),true);assert.ok(engine.clips.every(clip=>clip.muted));
   engine.stop();assert.ok(engine.clips.every(clip=>clip.paused));
 });
@@ -78,10 +78,20 @@ test('recording fallback loops without restarting; rejected rev recovers and has
   engine.clip=clip;t.mock.timers.enable({apis:['setTimeout']});engine.rev();engine.revSample.emit('loadedmetadata');t.mock.timers.tick(4300);assert.equal(engine.isRevving,false);
 });
 
-test('late garage audio cannot start after navigating home',async t=>{
-  const {engine}=setup(t);let release,motors=0;
-  engine.ctx={resume:()=>new Promise(resolve=>{release=resolve;}),createOscillator(){motors++;}};
-  const pending=engine.garage();engine.stop();release();await pending;assert.equal(motors,0);
+test('ignition ends before cruising; parking and garage cancel stale ignition completion',async t=>{
+  const {engine,sources,gain}=setup(t);
+  engine.start();await engine.playCruise();assert.equal(sources.length,0);assert.equal(engine.sample.plays,1);
+  engine.sample.emit('ended');await engine.playCruise();assert.equal(sources.length,1);assert.equal(gain.gain.value,.22);
+  engine.start();engine.park();engine.sample.emit('ended');await engine.playCruise();assert.equal(gain.gain.value,0);
+  engine.garage();engine.sample.emit('ended');await engine.playCruise();assert.equal(engine.active,false);assert.ok(engine.clips.every(clip=>clip.paused));
+});
+
+test('seven-second manual rev interrupts ignition and restores cruise on completion',async t=>{
+  const {engine,gain}=setup(t);t.mock.timers.enable({apis:['setTimeout']});
+  engine.start();engine.rev();engine.revSample.duration=7;engine.revSample.emit('loadedmetadata');
+  engine.sample.emit('ended');await engine.playCruise();assert.equal(engine.starting,false);assert.equal(gain.gain.value,0);
+  t.mock.timers.tick(7000);assert.equal(engine.isRevving,true);
+  engine.revSample.emit('ended');assert.equal(engine.isRevving,false);assert.equal(gain.gain.value,.22);
 });
 
 function pcmWave(file) {
@@ -98,7 +108,7 @@ function pcmWave(file) {
   return {...format,samples:new Int16Array(data.buffer,data.byteOffset,data.length/2)};
 }
 test('the longer cruise recording has a level envelope and a continuous PCM seam',()=>{
-  const {samples,channels,rate}=pcmWave(readFileSync('public/audio/r8-cruise-steady.wav'));
+  const {samples,channels,rate}=pcmWave(readFileSync('public/audio/engine-cruise.wav'));
   assert.ok(samples.length/channels/rate>6);assert.ok(samples.length/channels/rate<12);
   const block=Math.round(rate*.1)*channels,levels=[];
   for(let i=0;i+block<=samples.length;i+=block){let sum=0;for(let j=i;j<i+block;j++)sum+=samples[j]**2;levels.push(Math.sqrt(sum/block));}

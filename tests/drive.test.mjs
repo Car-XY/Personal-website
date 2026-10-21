@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { EXITS, speedAt, gearAt, rpmAt, exitPose, entryPose, OFF_RAMP, ON_RAMP, rampGap, highwayEdgePath, advanceWorld, WORLD_PERIOD, WORLD_UNITS_PER_METRE, MOTION_SCALE } from '../src/drive.js';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 
 test('a ride accelerates smoothly, reaches 180, and never exceeds it', () => {
   let previous = 0;
@@ -36,7 +36,8 @@ test('all highway exits have matching readable portfolio content', () => {
 });
 
 test('the optimized real model, local decoder, resume, and recorded engine clips ship together', () => {
-  for (const asset of ['models/audi-r8.glb', 'draco/draco_decoder.wasm', 'Cary-Li-Resume.pdf', 'audio/r8-engine.mp3', 'audio/r8-rev.mp3', 'audio/r8-cruise-steady.wav', 'audio/car-horn.mp3', 'images/projects/anchor.png', 'images/projects/kera.png', 'images/projects/clearpath.png']) {
+  assert.deepEqual(readdirSync('public/audio').sort(),['engine-cruise.wav','engine-rev.mp3','engine-start.mp3']);
+  for (const asset of ['models/audi-r8.glb', 'draco/draco_decoder.wasm', 'Cary-Li-Resume.pdf', 'audio/engine-start.mp3', 'audio/engine-rev.mp3', 'audio/engine-cruise.wav', 'images/projects/anchor.png', 'images/projects/kera.png', 'images/projects/clearpath.png']) {
     assert.ok(existsSync(`public/${asset}`), asset);
   }
   assert.equal(readFileSync('public/models/audi-r8.glb').subarray(0, 4).toString(), 'glTF');
