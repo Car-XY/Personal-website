@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { addCarDetails } from '../src/car-details.js';
+import { addCarDetails, disposeSceneResources } from '../src/car-details.js';
 
 test('the R8 has a closed floor and front and rear Car-XY plates', () => {
   const text = [];
@@ -20,4 +20,13 @@ test('the R8 has a closed floor and front and rear Car-XY plates', () => {
   assert.equal(details.children.filter(child=>child.name.startsWith('CarXY_LicensePlate')).length,2);
   assert.ok(text.includes('Car-XY'));
   assert.ok(details.getObjectByName('Interior_SteeringWheel'));
+});
+
+test('shared geometry, materials, and detached textures are released once on scene teardown',()=>{
+  const geometry=new THREE.BoxGeometry(),texture=new THREE.Texture(),detached=new THREE.Texture();
+  const material=new THREE.MeshStandardMaterial({map:texture});
+  const root=new THREE.Group();root.add(new THREE.Mesh(geometry,material),new THREE.Mesh(geometry,material));
+  const disposed={geometry:0,material:0,texture:0,detached:0};
+  for(const [name,resource]of Object.entries({geometry,material,texture,detached}))resource.addEventListener('dispose',()=>disposed[name]++);
+  disposeSceneResources(root,[detached,texture]);assert.deepEqual(disposed,{geometry:1,material:1,texture:1,detached:1});
 });

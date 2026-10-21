@@ -1,5 +1,17 @@
 import * as THREE from 'three';
 
+export function disposeSceneResources(root, extraTextures = []) {
+  const geometries=new Set(),materials=new Set(),textures=new Set(extraTextures);
+  root.traverse(object=>{
+    if(object.geometry)geometries.add(object.geometry);
+    (Array.isArray(object.material)?object.material:[object.material]).forEach(material=>{
+      if(!material)return;materials.add(material);
+      Object.values(material).forEach(value=>{if(value?.isTexture)textures.add(value);});
+    });
+  });
+  geometries.forEach(value=>value.dispose());materials.forEach(value=>value.dispose());textures.forEach(value=>value.dispose());
+}
+
 export function addCarDetails(car) {
   // The source model is about 4.4 m long, centred on X/Z, with Y up.
   const trim = new THREE.MeshStandardMaterial({ color: '#111820', roughness: .82, metalness: .15 });

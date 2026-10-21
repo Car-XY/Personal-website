@@ -3,20 +3,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { addCarDetails } from './car-details.js';
+import { addCarDetails, disposeSceneResources } from './car-details.js';
 import { GARAGE_OBJECTS } from './garage.js';
-
-function disposeObject(root, extraTextures = []) {
-  const geometries = new Set(), materials = new Set(), textures = new Set(extraTextures);
-  root.traverse(object => {
-    if (object.geometry) geometries.add(object.geometry);
-    (Array.isArray(object.material) ? object.material : [object.material]).forEach(material => {
-      if (!material) return;
-      materials.add(material); Object.values(material).forEach(value => { if (value?.isTexture) textures.add(value); });
-    });
-  });
-  geometries.forEach(value => value.dispose()); materials.forEach(value => value.dispose()); textures.forEach(value => value.dispose());
-}
 
 export default function GarageRoom({ highlighted, disabled, onSelect, onHover, onLayout, onReady, onError }) {
   const host = useRef(null), live = useRef({});
@@ -180,9 +168,9 @@ export default function GarageRoom({ highlighted, disabled, onSelect, onHover, o
     const carGroup=group('drive');
     const draco=new DRACOLoader();draco.setDecoderPath('/draco/');
     const loader=new GLTFLoader();loader.setDRACOLoader(draco);
-    let disposed=false,frame;
+    let disposed=false,frame,needsRender=true;
     loader.load('/models/audi-r8.glb?v=navy-clean-3',gltf=>{
-      if(disposed){disposeObject(gltf.scene);return;}
+      if(disposed){disposeSceneResources(gltf.scene);return;}
       const car=gltf.scene,bounds=new THREE.Box3().setFromObject(car),size=bounds.getSize(new THREE.Vector3());
       car.scale.setScalar(4.5/Math.max(size.x,size.z));
       const scaled=new THREE.Box3().setFromObject(car),centre=scaled.getCenter(new THREE.Vector3());
@@ -197,12 +185,13 @@ export default function GarageRoom({ highlighted, disabled, onSelect, onHover, o
           if(/LightBackHighlight/i.test(mat.name)){mat.emissive.set('#ef2424');mat.emissiveIntensity=1.2;}
         });
       });
-      addCarDetails(car);carGroup.add(car);live.current.onReady?.();
+      addCarDetails(car);carGroup.add(car);needsRender=true;live.current.onReady?.();
     },undefined,()=>{if(!disposed)live.current.onError?.();});
     const selection=new THREE.BoxHelper(undefined,'#c2dcff');selection.visible=false;selection.material.transparent=true;selection.material.opacity=.55;selection.material.depthTest=false;scene.add(selection);
     const resize=()=>{
       const {width,height}=container.getBoundingClientRect();if(!width||!height)return;
       renderer.setSize(width,height);const aspect=width/height;
+      needsRender=true;
       const corners=[];for(const x of [-8.3,8.3])for(const y of [-.3,5.5])for(const z of [-6.3,6.3])corners.push(new THREE.Vector3(x,y,z).applyMatrix4(camera.matrixWorldInverse));
       const minX=Math.min(...corners.map(p=>p.x)),maxX=Math.max(...corners.map(p=>p.x)),minY=Math.min(...corners.map(p=>p.y)),maxY=Math.max(...corners.map(p=>p.y));
       const half=Math.max((maxY-minY)/2,(maxX-minX)/2/aspect)*1.08,cx=(minX+maxX)/2,cy=(minY+maxY)/2;
@@ -236,17 +225,21 @@ export default function GarageRoom({ highlighted, disabled, onSelect, onHover, o
     const canvas=renderer.domElement;
     canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerleave',leave);canvas.addEventListener('webglcontextlost',lost);
     let selected=null;
+    const visible=()=>{needsRender=true;};document.addEventListener('visibilitychange',visible);
     function render(){
       frame=requestAnimationFrame(render);if(document.hidden)return;
       const next=live.current.disabled?null:live.current.highlighted;
-      if(next!==selected){selected=next;selection.visible=!!targets.get(next);if(selection.visible)selection.setFromObject(targets.get(next));}
-      renderer.render(scene,camera);
+      if(next!==selected){selected=next;selection.visible=!!targets.get(next);needsRender=true;}
+      if(!needsRender)return;
+      if(selection.visible)selection.setFromObject(targets.get(next));
+      renderer.render(scene,camera);needsRender=false;
     }
     render();
     return()=>{
       disposed=true;cancelAnimationFrame(frame);observer.disconnect();draco.dispose();
+      document.removeEventListener('visibilitychange',visible);
       canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerleave',leave);canvas.removeEventListener('webglcontextlost',lost);
-      disposeObject(scene,oldTextures);environmentMap.dispose();pmrem.dispose();renderer.dispose();canvas.remove();
+      disposeSceneResources(scene,oldTextures);environmentMap.dispose();pmrem.dispose();renderer.dispose();canvas.remove();
     };
   },[]);
   return <div className="garage-three-room" ref={host} role="img" aria-label="Cary’s garage: a navy Audi R8 parked between a project workbench, racing rack, story wall, tool chest, and contact station."/>;

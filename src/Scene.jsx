@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { addCarDetails } from './car-details.js';
+import { addCarDetails, disposeSceneResources } from './car-details.js';
 
 export default function Scene({ onReady, onError }) {
   const host = useRef(null);
@@ -25,6 +25,7 @@ export default function Scene({ onReady, onError }) {
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 600);
     let controls, car, disposed = false, frame;
+    const originalTextures = new Set();
     const clock = new THREE.Clock();
     const pmrem = new THREE.PMREMGenerator(renderer);
     const environment = new RoomEnvironment();
@@ -54,7 +55,7 @@ export default function Scene({ onReady, onError }) {
       const loader = new GLTFLoader();
       const draco = new DRACOLoader(); draco.setDecoderPath('/draco/'); loader.setDRACOLoader(draco);
       loader.load('/models/audi-r8.glb?v=navy-clean-3', gltf => {
-        if (disposed) { gltf.scene.traverse(n => { n.geometry?.dispose(); }); return; }
+        if (disposed) { disposeSceneResources(gltf.scene); return; }
         car = gltf.scene;
         const bounds = new THREE.Box3().setFromObject(car);
         const size = bounds.getSize(new THREE.Vector3());
@@ -68,6 +69,7 @@ export default function Scene({ onReady, onError }) {
           mesh.castShadow = true; mesh.receiveShadow = true;
           const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
           materials.forEach(mat => {
+            Object.values(mat).forEach(value=>{if(value?.isTexture)originalTextures.add(value);});
             if (/BodyMaterial|RoofCanvas/i.test(mat.name)) {
               mat.color.set('#102c52'); mat.metalness = 0.78; mat.roughness = 0.24;
               mat.map = null;
@@ -83,7 +85,7 @@ export default function Scene({ onReady, onError }) {
         });
         addCarDetails(car);
         scene.add(car); callbacks.current.onReady?.();
-      }, undefined, () => callbacks.current.onError?.());
+      }, undefined, () => { if(!disposed)callbacks.current.onError?.(); });
     const resize = () => {
       const { width, height } = container.getBoundingClientRect();
       renderer.setSize(width, height); camera.aspect = width / Math.max(height, 1); camera.updateProjectionMatrix();
@@ -104,11 +106,7 @@ export default function Scene({ onReady, onError }) {
     return () => {
       disposed = true; cancelAnimationFrame(frame); observer.disconnect(); controls?.dispose();
       document.removeEventListener('visibilitychange', visibility);
-      scene.traverse(object => {
-        object.geometry?.dispose();
-        const materials = Array.isArray(object.material) ? object.material : [object.material];
-        materials.forEach(mat => { if (!mat) return; Object.values(mat).forEach(v => { if (v?.isTexture) v.dispose(); }); mat.dispose(); });
-      });
+      draco.dispose(); disposeSceneResources(scene,originalTextures);
       envTexture.dispose(); pmrem.dispose(); renderer.dispose(); renderer.domElement.remove();
     };
   }, []);
