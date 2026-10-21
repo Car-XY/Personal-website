@@ -1,0 +1,59 @@
+/* The landing page offers the two modes; portfolio sections mount in the garage. */
+.landing-page .garage-hero{min-height:max(672px,calc(100svh - 100px))}
+.landing-page .hero-copy{padding-top:clamp(0px,3vh,40px)}
+.landing-header-note{display:flex;align-items:center;gap:9px;font:7px var(--mono);letter-spacing:1.2px;color:#8da7c9}
+.landing-page .hero-cta{gap:12px}
+.enter-garage-button{display:flex;align-items:center;justify-content:space-between;gap:28px;width:255px;border:1px solid #b3cfff4a;padding:17px 22px;font:500 10px var(--mono);letter-spacing:1px;border-radius:3px;background:#11223b80;color:#d8e7ff}
+.enter-garage-button:hover{background:#20395c;border-color:#b3cfff90}
+.on-landing .mobile-menu{display:none}
+.supplied-art{display:flex;align-items:center;justify-content:center;background:#e6e7e1}
+.supplied-art img{display:block;width:100%;height:100%;object-fit:contain}
+.anchor-thumbnail{background:#09090b}.kera-thumbnail{background:#fff}.clearpath-thumbnail{background:#e5e7e0}
+.topdown-screen{background:#263b35}
+.topdown-world,.highway-map{position:absolute;inset:0;width:100%;height:100%}
+.topdown-world{overflow:hidden}
+.map-branch{opacity:0;transition:opacity .7s ease}
+.branch-visible .map-branch{opacity:1}
+.topdown-screen .drive-header{background:linear-gradient(#081424ed,#081424c9 70%,transparent);height:106px}
+.topdown-screen .brand{filter:none}
+.topdown-screen .return-garage{background:#0c1c30e8;border-color:#7897b65c}
+.topdown-screen .drive-location{text-shadow:none}
+.map-directory{position:absolute;z-index:3;top:143px;left:var(--gutter);width:286px;max-height:calc(100dvh - 270px);overflow:auto;opacity:0;transform:translateY(12px);transition:opacity .45s,transform .45s;pointer-events:none;border:2px solid #dce5dc;border-radius:6px;background:#155c40;color:#f4f6ed;box-shadow:0 4px 0 #102c2945}
+.map-directory.directory-visible{opacity:1;transform:translateY(0);pointer-events:auto}
+.map-sign-heading{display:flex;align-items:center;gap:14px;padding:20px 18px 17px;border-bottom:1px solid #e5edde55}
+.map-sign-heading>div{flex:1}.map-sign-heading>div>span{font:7px var(--mono);letter-spacing:1.8px;color:#d3e4cc}
+.map-sign-heading h2{font:500 24px var(--display);margin-top:5px;letter-spacing:.1px}
+.map-sign-heading>svg{color:#e2eddb}
+.map-exit-sign{display:flex;align-items:center;gap:13px;width:100%;text-align:left;padding:14px 17px;border-bottom:1px solid #d9e8d931;min-height:63px;transition:background .2s}
+.map-exit-sign:hover{background:#2f7b54}.map-exit-sign:focus-visible{outline:2px solid #fff;outline-offset:-5px}
+.map-exit-number{font:500 10px var(--mono);border:1px solid #e0ead78c;padding:5px;border-radius:2px;color:#eef2e1}
+.map-exit-sign>span:nth-child(2){flex:1}.map-exit-sign strong{display:block;font-size:14px;font-weight:550;letter-spacing:-.2px}
+.map-exit-sign small{display:block;font-size:9px;color:#b6cdb4;margin-top:4px}
+.map-exit-sign>svg{color:#d2e5c6;width:18px}
+.map-directory-note{padding:12px 17px;font:5px var(--mono);letter-spacing:1px;color:#b5cdb2}
+.map-drive-message{position:absolute;z-index:2;top:24%;left:var(--gutter);width:295px;padding:22px 23px;background:#0a192adf;border:1px solid #91aec131;border-radius:4px;color:#e8f0f7}
+.map-drive-message .eyebrow{font-size:7px;color:#9bb4ce;letter-spacing:1px}
+.map-drive-message h2{font:600 39px/1.04 var(--display);margin:13px 0 12px;letter-spacing:-.2px}
+.map-drive-message p{font-size:10px;color:#9eb2c1;line-height:1.7}
+.map-compass{position:absolute;right:var(--gutter);top:140px;display:flex;align-items:center;gap:10px;color:#cddacc;font:9px var(--mono);letter-spacing:1px;background:#0a192a8f;padding:13px;border:1px solid #a7bbad25;border-radius:50px}
+.map-compass svg{transform:rotate(-45deg)}
+.map-telemetry{position:absolute;z-index:2;bottom:113px;right:var(--gutter);width:222px;background:#0b192be8;border:1px solid #89a2b14f;padding:18px 22px;border-radius:5px;color:#e3edfa}
+.map-telemetry-top{display:flex;align-items:center;justify-content:space-between;font:7px var(--mono);letter-spacing:1.3px;color:#92abc5}
+.map-telemetry-top .status-dot{height:4px;width:4px}
+.map-speed{display:flex;align-items:center;gap:15px;padding:9px 0 13px}
+.map-speed>span{font:500 25px var(--display);color:#a4bedf;border-right:1px solid #a4bedf3f;padding-right:14px;min-width:28px}
+.map-speed strong{font:500 62px/.95 var(--display);letter-spacing:1px}
+.map-speed small{font:7px var(--mono);color:#8eabc5;padding-top:22px}
+.map-rpm{height:3px;background:#344251}
+.map-rpm>span{display:block;height:100%;background:linear-gradient(90deg,#91bbee 75%,#eeaa78);transition:width .15s}
+.map-drive-state{font:5px var(--mono);letter-spacing:1.1px;color:#8fa8bd;margin-top:12px}
+.topdown-screen .drive-controls{bottom:27px;box-shadow:none;backdrop-filter:none;background:#0b192bf5}
+.topdown-screen .drive-help{box-shadow:none}
+.map-turn-signal{animation:map-indicator .65s steps(1) infinite}
+.horn-ripples{animation:map-horn .6s ease-out infinite;transform-origin:center}
+@keyframes map-indicator{50%{opacity:0}}@keyframes map-horn{0%{opacity:.3}50%{opacity:1}100%{opacity:0}}
+@media(max-width:1100px){.map-directory{left:32px;width:260px;top:126px}.map-sign-heading{padding:16px}.map-sign-heading h2{font-size:22px}.map-exit-sign{padding:12px 15px;min-height:60px}.map-telemetry{right:32px}.map-drive-message{left:32px;width:265px}.landing-header-note{font-size:6px;letter-spacing:.8px}}
+@media(max-width:800px){.landing-header-note{display:none}.landing-page .garage-hero{min-height:900px}.landing-page .hero-copy{padding-top:0}.landing-page .hero-cta{top:186px;right:0;width:235px;max-width:235px;align-items:stretch}.enter-garage-button{width:100%;padding:16px 18px;font-size:8px}.landing-page .sound-note{top:318px;right:35px}.landing-page .car-stage{top:363px}.map-directory{left:23px;top:115px;width:234px}.map-exit-sign{gap:10px;padding:11px 13px;min-height:57px}.map-exit-sign strong{font-size:13px}.map-exit-sign small{font-size:8px}.map-telemetry{right:23px;width:180px;padding:17px}.map-speed strong{font-size:53px}.map-speed{gap:12px}.map-telemetry-top{font-size:6px}.map-drive-state{font-size:4px;letter-spacing:.8px}.map-drive-message{left:23px;width:234px}.map-drive-message h2{font-size:34px}.map-compass{right:23px;top:115px}.topdown-screen .drive-header{height:91px}.topdown-screen .drive-controls{bottom:20px}}
+@media(max-width:560px){.landing-page .garage-hero{min-height:max(960px,calc(100svh - 76px))}.landing-page .hero-cta{position:static;width:100%;max-width:100%;flex-direction:column;gap:11px;align-items:stretch;margin-top:22px}.landing-page .start-button{justify-content:space-between;padding:17px 19px;font-size:9px}.landing-page .start-button svg:last-child{margin-left:auto}.enter-garage-button{padding:16px 19px;font-size:9px;min-height:48px}.landing-page .sound-note{position:static;margin-top:15px}.landing-page .car-stage{top:508px}.landing-page .hero-description{max-width:320px}.landing-page .hero-bottom{height:88px}.map-directory{top:99px;left:18px;width:calc(100% - 36px);max-height:calc(100dvh - 255px)}.map-sign-heading{padding:12px 15px;gap:11px}.map-sign-heading h2{font-size:21px;margin-top:2px}.map-sign-heading>div>span{font-size:6px;letter-spacing:1.4px}.map-sign-heading .ontario-shield{width:34px}.map-sign-heading .ontario-shield strong{font-size:22px}.map-sign-heading>svg{width:22px}.map-exit-sign{min-height:47px;padding:9px 15px;gap:13px}.map-exit-number{font-size:8px;padding:4px}.map-exit-sign strong{font-size:12px}.map-exit-sign small{font-size:8px;margin-top:2px}.map-exit-sign>svg{width:16px}.map-directory-note{padding:9px 15px;font-size:4.5px;letter-spacing:.7px}.map-drive-message{top:115px;left:18px;width:230px;padding:20px}.map-drive-message h2{font-size:33px}.map-drive-message p{font-size:9px}.map-drive-message .eyebrow{font-size:6px;letter-spacing:.8px}.map-compass{display:none}.map-telemetry{right:18px;bottom:100px;width:153px;padding:14px 15px}.map-speed{padding:8px 0 9px;gap:9px}.map-speed strong{font-size:45px}.map-speed>span{font-size:21px;padding-right:10px;min-width:23px}.map-speed small{font-size:5px;padding-top:17px}.map-telemetry-top{font-size:5px;letter-spacing:.9px}.map-drive-state{font-size:4px;letter-spacing:.45px;margin-top:9px}.topdown-screen .drive-header{height:84px}.topdown-screen .drive-controls{bottom:max(18px,env(safe-area-inset-bottom))}}
+@media(max-height:600px) and (min-width:561px){.landing-page .garage-hero{min-height:672px}.map-directory{top:76px;max-height:calc(100dvh - 140px);width:235px}.map-sign-heading{padding:10px 13px}.map-sign-heading h2{font-size:19px}.map-exit-sign{padding:8px 13px;min-height:44px}.map-exit-sign strong{font-size:12px}.map-exit-sign small{font-size:7px}.map-directory-note{font-size:4px;padding:8px 13px}.map-telemetry{bottom:80px;width:175px;padding:14px 17px}.map-speed strong{font-size:45px}.topdown-screen .drive-header{height:70px}.topdown-screen .drive-controls{bottom:13px}.map-drive-message{top:95px}.map-compass{top:90px}}
+@media(prefers-reduced-motion:reduce){.map-directory,.map-branch{transition:none}.map-turn-signal,.horn-ripples{animation:none}}

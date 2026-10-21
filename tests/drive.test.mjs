@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { EXITS, speedAt, gearAt, rpmAt } from '../src/drive.js';
+import { EXITS, speedAt, gearAt, rpmAt, exitPose } from '../src/drive.js';
 import { existsSync, readFileSync } from 'node:fs';
 
 test('a ride accelerates smoothly, reaches 180, and never exceeds it', () => {
@@ -36,7 +36,7 @@ test('all highway exits have matching readable portfolio content', () => {
 });
 
 test('the optimized real model, local decoder, resume, and recorded engine clips ship together', () => {
-  for (const asset of ['models/audi-r8.glb', 'draco/draco_decoder.wasm', 'Cary-Li-Resume.pdf', 'audio/r8-engine.mp3', 'audio/r8-rev.mp3', 'audio/r8-cruise.mp3']) {
+  for (const asset of ['models/audi-r8.glb', 'draco/draco_decoder.wasm', 'Cary-Li-Resume.pdf', 'audio/r8-engine.mp3', 'audio/r8-rev.mp3', 'audio/r8-cruise.mp3', 'audio/car-horn.mp3', 'images/projects/anchor.png', 'images/projects/kera.png', 'images/projects/clearpath.png']) {
     assert.ok(existsSync(`public/${asset}`), asset);
   }
   assert.equal(readFileSync('public/models/audi-r8.glb').subarray(0, 4).toString(), 'glTF');
@@ -46,4 +46,19 @@ test('the optimized real model, local decoder, resume, and recorded engine clips
   const tyres = model.materials.find(material => /undercarriage|Tyre/.test(material.name));
   assert.ok(body && tyres, 'car paint and rubber must keep distinct materials');
   assert.notDeepEqual(body.pbrMetallicRoughness.baseColorFactor, tyres.pbrMetallicRoughness.baseColorFactor);
+});
+
+test('the shared ramp connects highway and parking bay with a continuous heading', () => {
+  assert.deepEqual(exitPose(0), {x:500,y:510,angle:0});
+  assert.deepEqual(exitPose(1), {x:770,y:180,angle:0});
+  let previous = exitPose(0);
+  for (let i=1;i<=100;i++) {
+    const next = exitPose(i/100);
+    assert.ok(next.x>=previous.x && next.y<previous.y);
+    assert.ok(Math.hypot(next.x-previous.x,next.y-previous.y)<8);
+    assert.ok(Math.abs(next.angle-previous.angle)<4);
+    previous = next;
+  }
+  assert.deepEqual(exitPose(-1),exitPose(0));
+  assert.deepEqual(exitPose(2),exitPose(1));
 });

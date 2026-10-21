@@ -1,8 +1,9 @@
 import { Component, Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, ArrowRight, ArrowDown, Volume2, VolumeX, Download, Github, Linkedin, Menu, X, Power, Gauge, MapPin, RotateCcw, CircleHelp, ExternalLink, Check, Navigation, Hand, CarFront, AudioLines, Megaphone } from 'lucide-react';
-import { EXITS, speedAt, gearAt, rpmAt } from './drive.js';
+import { EXITS, speedAt, gearAt, rpmAt, EXIT_DURATION } from './drive.js';
 import { links, projects, skills } from './data.js';
 import { audio } from './audio.js';
+import TopDownDrive from './TopDownDrive.jsx';
 
 const Scene = lazy(() => import('./Scene.jsx'));
 
@@ -20,20 +21,21 @@ function OntarioShield({ small = false }) {
   return <span className={`ontario-shield ${small ? 'small' : ''}`}><span className="shield-crown">♛</span><strong>401</strong><span>ONTARIO</span></span>;
 }
 
-function Header({ onStart, muted, onMute, garage }) {
+function Header({ onStart, muted, onMute, garage, landing = false }) {
   const [menu, setMenu] = useState(false);
   return <header className="site-header">
     <Brand onClick={garage} />
-    <nav className={menu ? 'nav open' : 'nav'} aria-label="Main navigation">
+    {!landing && <nav className={menu ? 'nav open' : 'nav'} aria-label="Main navigation">
       <a href="#home" className="nav-active" onClick={() => setMenu(false)}>The Garage <span>01</span></a>
       <a href="#route" onClick={() => setMenu(false)}>The Route <span>02</span></a>
       <a href="#contact" onClick={() => setMenu(false)}>Let’s Talk <ArrowUpRight size={14} /></a>
-    </nav>
+    </nav>}
+    {landing && <div className="landing-header-note"><span className="status-dot"/> TWO WAYS TO EXPLORE. ONE CURIOUS MIND.</div>}
     <div className="header-actions"><a href="/Cary-Li-Resume.pdf" className="resume-link" target="_blank" rel="noreferrer">Résumé <ArrowUpRight size={15}/></a><span className="header-divider"/><button className="icon-button sound-toggle" onClick={onMute} aria-label={muted ? 'Unmute sound' : 'Mute sound'} aria-pressed={!muted}>{muted ? <VolumeX size={18}/> : <Volume2 size={18}/>}</button><button className="mobile-menu icon-button" aria-label={menu ? 'Close navigation' : 'Open navigation'} onClick={() => setMenu(!menu)}>{menu ? <X/> : <Menu/>}</button></div>
   </header>;
 }
 
-function GarageHero({ onStart, onRev, onHorn, revving, honking }) {
+function GarageHero({ onStart, onGarage, onRev, onHorn, revving, honking, landing = false }) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   return <section className="garage-hero" id="home" aria-labelledby="hero-title">
@@ -43,7 +45,7 @@ function GarageHero({ onStart, onRev, onHorn, revving, honking }) {
       <h1 id="hero-title">DRIVEN BY<br/><span>CURIOSITY.</span><span className="heading-period"/></h1>
       <p className="hero-intro">Hey, I’m <strong>Cary.</strong> Engineer in the making.<br/>Builder by nature. Always taking the scenic route.</p>
       <p className="hero-description">From neural networks to racing lines, I build things that move us forward. Hop in. I’ll show you around.</p>
-      <div className="hero-cta"><button className="start-button" onClick={onStart}><Power size={18}/><span>START THE ENGINE</span><ArrowUpRight size={21}/></button><a className="skip-link" href="#projects">Or, explore at your own pace <ArrowDown size={14}/></a></div>
+      <div className="hero-cta" id={landing ? 'mode-choice' : undefined}><button className="start-button" onClick={onStart}><Power size={18}/><span>{landing ? 'TEST DRIVE CAR-XY' : 'START THE ENGINE'}</span><ArrowUpRight size={21}/></button>{landing ? <button className="enter-garage-button" onClick={onGarage}>ENTER THE GARAGE <ArrowRight size={18}/></button> : <a className="skip-link" href="#projects">Or, explore at your own pace <ArrowDown size={14}/></a>}</div>
       <div className="sound-note"><AudioLines size={15}/><span>Sound on. Seatbelt optional.</span></div>
     </div>
     <div className={`car-stage ${revving ? 'revving' : ''}`}>
@@ -66,10 +68,39 @@ function RouteMap({ onSelect, onStart }) {
 }
 
 function ProjectArt({ kind }) {
-  if (kind === 'kera') return <div className="project-art kera-art" aria-hidden="true"><div className="art-grid"/><span className="art-meta">KERA / HEALTH INTELLIGENCE</span><div className="kera-orb"><span>k.</span><i/><i/><i/></div><div className="kera-readout"><span>COLOUR → INSIGHT</span><svg viewBox="0 0 180 30"><path d="M0 18h29l8-9 7 17 9-23 8 15h28l9-11 7 16 8-13 7 8h60"/></svg></div><span className="art-corner">01—ML</span></div>;
-  if (kind === 'clearpath') return <div className="project-art room-art" aria-hidden="true"><div className="art-grid"/><span className="art-meta">CLEARPATH / MAKE ROOM</span><div className="room"><div className="room-floor"/><div className="room-wall back"/><div className="room-wall side"/><div className="room-window"/><div className="room-sofa"><i/><i/></div><div className="room-table"/><div className="room-plant"/><div className="room-path"/></div><span className="art-corner">02—3D</span><span className="room-label">A NEW PERSPECTIVE.</span></div>;
-  if (kind === 'anchor') return <div className="project-art anchor-art" aria-hidden="true"><div className="art-grid"/><span className="art-meta">ANCHOR / STAY THE COURSE</span><div className="anchor-window"><div className="window-bar"><span/><span/><span/><b>anchor.</b></div><div className="anchor-window-body"><span>ONE DAY AT A TIME.</span><h4>Build your momentum.</h4><div className="habit-row"><Check size={13}/> Morning run <span>07</span></div><div className="habit-row"><Check size={13}/> Read 20 pages <span>12</span></div><div className="habit-row"><span className="habit-empty"/> Make something <span>03</span></div><div className="habit-week">{['M','T','W','T','F','S','S'].map((d,i)=><span key={i} className={i<5?'checked':''}>{d}</span>)}</div></div></div><span className="art-corner">03—APP</span></div>;
-  return <div className="project-art racing-art" aria-hidden="true"><div className="art-grid"/><span className="art-meta">RACING / THE OPTIMAL LINE</span><svg viewBox="0 0 500 270"><path className="track-edge" d="M-30 210C50 210 63 47 164 56S287 244 362 197 393 26 535 37"/><path className="track-edge second" d="M-30 255C88 255 100 95 158 101S266 299 391 229 427 77 535 80"/><path className="racing-line" d="M-30 239C83 239 85 70 160 79S283 269 375 212 410 52 535 58"/>{[[42,170],[89,98],[177,69],[240,137],[322,219],[388,161],[447,58]].map(([x,y],i)=><g key={i}><path d={`M${x} ${y-5}l-5 10h10z`} fill="#e9af63"/><path d={`M${x-19} ${y+25}l-5 10h10z`} fill="#a6c8e3"/></g>)}<g transform="translate(268 183) rotate(42)"><rect x="-7" y="-15" width="14" height="30" rx="5" fill="#d5f0a0"/><rect x="-10" y="-12" width="20" height="3" fill="#7c8e6b"/><rect x="-10" y="9" width="20" height="3" fill="#7c8e6b"/></g></svg><span className="telemetry-label">PATH OPTIMIZED <span className="status-dot"/></span><span className="art-corner">04—C++</span></div>;
+  const thumbnail = {
+    anchor: { src:'/images/projects/anchor.png', alt:'Anchor app home screen with habit tracking, daily reflection, and goal timeline' },
+    kera: { src:'/images/projects/kera.png', alt:'Kera Devpost thumbnail: Health at your fingertips, showing a photo-based hemoglobin estimate' },
+    clearpath: { src:'/images/projects/clearpath.png', alt:'ClearPath room planner showing furniture, clearance checks, and a route through a 3D room' },
+  }[kind];
+  if (thumbnail) return <div className={`project-art supplied-art ${kind}-thumbnail`}><img src={thumbnail.src} alt={thumbnail.alt} loading="lazy" decoding="async"/></div>;
+  return <RacingArt/>;
+}
+
+function RacingArt() {
+  const path = useRef(null);
+  const [markers,setMarkers] = useState([]);
+  const [pose,setPose] = useState(null);
+  useEffect(()=>{
+    const line = path.current;
+    const length = line.getTotalLength();
+    const samples = [];
+    for (let distance=18;distance<length-12;distance+=23) {
+      const p=line.getPointAtLength(distance), next=line.getPointAtLength(distance+1);
+      const dx=next.x-p.x, dy=next.y-p.y, mag=Math.hypot(dx,dy);
+      for (const side of [-1,1]) samples.push({x:p.x-dy/mag*17*side,y:p.y+dx/mag*17*side,side});
+    }
+    setMarkers(samples);
+    const at=length*.56, p=line.getPointAtLength(at), next=line.getPointAtLength(at+2);
+    setPose({x:p.x,y:p.y,angle:Math.atan2(next.y-p.y,next.x-p.x)*180/Math.PI+90});
+  },[]);
+  const route='M-30 224C60 224 75 60 160 78S282 261 375 207 411 52 535 58';
+  return <div className="project-art racing-art" aria-hidden="true"><div className="art-grid"/><span className="art-meta">RACING / THE OPTIMAL LINE</span><svg viewBox="0 0 500 270">
+    <path d={route} fill="none" stroke="#8ea8bb18" strokeWidth="50"/>
+    <path ref={path} className="racing-line" d={route}/>
+    {markers.map((cone,i)=><g key={i} transform={`translate(${cone.x} ${cone.y})`}><ellipse cy="3" rx="4" ry="1.8" fill="#0c1525" opacity=".5"/><path d="M0-5-3.5 3h7Z" fill={cone.side<0?'#e9ad59':'#a7cee8'}/><path d="M-1.7-.5h3.4" stroke="#f9f1db" strokeWidth="1"/></g>)}
+    {pose && <g transform={`translate(${pose.x} ${pose.y}) rotate(${pose.angle})`}><rect x="-7" y="-14" width="14" height="28" rx="5" fill="#9abcec" stroke="#d4e3f7" strokeWidth=".7"/><path d="M-5-7H5L4-1H-4Z" fill="#193149"/><rect x="-10" y="-11" width="20" height="3" fill="#121d2a"/><rect x="-10" y="8" width="20" height="3" fill="#121d2a"/><path d="M-5-12h3m4 0h3" stroke="#f2f8ff" strokeWidth="1.5"/></g>}
+  </svg><span className="telemetry-label">PATH OPTIMIZED <span className="status-dot"/></span><span className="art-corner">04—C++</span></div>;
 }
 
 function SectionHeading({ number, label, title, text, link }) {
@@ -84,7 +115,7 @@ function Projects({ compact = false }) {
 }
 
 function Teams({ compact = false }) {
-  return <section className="content-section teams-section" id={compact ? undefined : 'teams'}><SectionHeading number="02" label="THE DESIGN TEAMS" title="Built for the real world." text="The best part of writing code? Watching it move something."/><div className="teams-grid"><article className="team-card formula"><div className="team-art" aria-hidden="true"><span className="team-giant">F<span>SAE</span></span><div className="team-track"/><span className="team-art-meta">U OF T · FORMULA RACING</span></div><div className="team-content"><span className="project-category">FORMULA SAE · DRIVERLESS</span><h3>U of T Formula Racing</h3><p>Turning a track full of cones into a racing line. I develop C++ pathfinding algorithms that optimize path length and straightness for the team’s driverless car.</p><div className="team-role"><span className="status-dot"/> PATHFINDING & PERCEPTION SOFTWARE</div><a href="https://fsaeutoronto.ca" target="_blank" rel="noreferrer" className="text-link">Meet the team <ArrowUpRight size={16}/></a></div></article><article className="team-card solar"><div className="team-art" aria-hidden="true"><div className="solar-sun"/><div className="solar-panel"/><span className="solar-word">BLUE SKY</span><span className="team-art-meta">U OF T · SOLAR RACING</span></div><div className="team-content"><span className="project-category">SOLAR VEHICLES · RACE STRATEGY</span><h3>Blue Sky Solar Racing</h3><p>A different kind of horsepower. I simulate energy use to find efficient racing speeds, using local caching to make the search faster. Every watt has a job to do.</p><div className="team-role"><span className="status-dot"/> ENERGY SIMULATION & RACE STRATEGY</div><a href="https://www.blueskysolar.utoronto.ca" target="_blank" rel="noreferrer" className="text-link">Meet the team <ArrowUpRight size={16}/></a></div></article></div></section>;
+  return <section className="content-section teams-section" id={compact ? undefined : 'teams'}><SectionHeading number="02" label="THE DESIGN TEAMS" title="Built for the real world." text="The best part of writing code? Watching it move something."/><div className="teams-grid"><article className="team-card formula"><div className="team-art" aria-hidden="true"><span className="team-giant">F<span>SAE</span></span><div className="team-track"/><span className="team-art-meta">U OF T · FORMULA RACING</span></div><div className="team-content"><span className="project-category">FORMULA SAE · DRIVERLESS</span><h3>U of T Formula Racing</h3><p>Turning a track full of cones into a racing line. I develop C++ pathfinding algorithms that optimize path length and straightness for the team’s driverless car.</p><div className="team-role"><span className="status-dot"/> PATHFINDING & PERCEPTION SOFTWARE</div><a href="https://fsaeutoronto.ca" target="_blank" rel="noreferrer" className="text-link">Meet the team <ArrowUpRight size={16}/></a></div></article><article className="team-card solar"><div className="team-art" aria-hidden="true"><div className="solar-sun"/><div className="solar-panel"/><span className="solar-word">BLUE SKY</span><span className="team-art-meta">U OF T · SOLAR RACING</span></div><div className="team-content"><span className="project-category">SOLAR VEHICLES · RACE STRATEGY</span><h3>Blue Sky Solar Racing</h3><p>A different kind of horsepower. I simulate energy use to find efficient racing speeds, using local caching to make the search faster. Every watt has a job to do.</p><div className="team-role"><span className="status-dot"/> ENERGY SIMULATION & RACE STRATEGY</div><a href="https://www.blueskysolar.org/" target="_blank" rel="noreferrer" className="text-link">Meet the team <ArrowUpRight size={16}/></a></div></article></div></section>;
 }
 
 function Journey({ compact = false }) {
@@ -123,76 +154,128 @@ function StopDialog({ exit, onBack, onGarage }) {
   return <dialog className="stop-dialog" ref={modal} aria-labelledby="stop-title"><div className="stop-shell"><div className="stop-header"><span><Navigation size={17}/><span id="stop-title">EXIT {exit.number} · {exit.title.toUpperCase()}</span></span><button className="icon-button" onClick={onBack} aria-label="Close and return to the road"><X size={20}/></button></div><div className="stop-scroll"><Content compact/></div><div className="stop-bottom"><button className="text-link" onClick={onGarage}><RotateCcw size={15}/> Return to garage</button><button className="start-button" onClick={onBack}>BACK ON THE ROAD <ArrowRight size={18}/></button></div></div></dialog>;
 }
 
-function Cockpit({ speed, rev, onHorn, honking }) {
-  const rpm = rpmAt(speed, rev);
-  return <div className="cockpit" aria-label={`Speed ${speed} kilometres per hour, gear ${gearAt(speed)}`}><div className="windshield-pillar left"/><div className="windshield-pillar right"/><div className="hood-line"/><div className="dashboard"><div className="dash-stitch"/><div className="vent left-vent"><i/><i/><i/></div><div className="instrument-cluster"><div className="rpm-scale">{[1,2,3,4,5,6,7,8].map(n=><span key={n} className={rpm >= n*1000 ? 'lit' : ''}>{n}</span>)}</div><div className="rpm-bar"><span style={{width:`${rpm/8500*100}%`}}/></div><div className="speed-readout"><span className="gear-display">{gearAt(speed)}</span><strong>{speed.toString().padStart(3,'0')}</strong><span className="speed-unit">KM/H</span></div><div className="instrument-bottom"><span>R8 <i>V10</i></span><span>{speed >= 180 ? 'CRUISING' : speed > 0 ? 'ACCELERATING' : 'QUATTRO'}</span><span>22°C</span></div></div><div className="vent right-vent"><i/><i/><i/></div><div className="passenger-dash">CAR—XY <span>DRIVEN BY CURIOSITY</span></div><button className={honking ? 'steering-wheel honking' : 'steering-wheel'} onClick={onHorn} aria-label="Honk horn"><div className="wheel-spoke left-spoke"/><div className="wheel-spoke right-spoke"/><div className="wheel-spoke bottom-spoke"/><div className="wheel-center"><span className="audi-rings"><i/><i/><i/><i/></span><small>AIRBAG</small></div><span className="wheel-mark"/></button><div className="dash-red-line"/></div></div>;
-}
-
-function Drive({ speed, ready, activeExit, onSelect, onBack, onGarage, onRev, onHorn, rev, honking, muted, onMute, onSceneReady }) {
+function Drive({ speed, ready, activeExit, navigatingExit, maneuver, maneuverProgress, onSelect, onBack, onGarage, onRev, onHorn, rev, honking, muted, onMute }) {
   const [help, setHelp] = useState(false);
-  return <div className="drive-screen"><SceneBoundary><Suspense fallback={<div className="drive-loading">Finding the open road…</div>}><Scene driving speed={activeExit ? 0 : speed} onReady={onSceneReady} onError={onSceneReady}/></Suspense></SceneBoundary><div className="drive-vignette"/><div className="drive-header"><Brand onClick={onGarage}/><div className="drive-location"><span className="status-dot"/> THE SCENIC ROUTE <span>ONTARIO, CANADA</span></div><button className="return-garage" onClick={onGarage}><RotateCcw size={15}/><span>RETURN TO GARAGE</span></button></div><div className={`highway-signs ${ready ? 'arrived' : ''}`} aria-hidden={!ready} inert={!ready}><div className="gantry"/><div className="sign-top"><OntarioShield small/><span>EAST <ArrowUpRight size={30}/></span><span>YOUR NEXT EXIT<br/><strong>IS UP TO YOU.</strong></span></div><nav className="sign-destinations" aria-label="Highway exits">{EXITS.map(exit=><button className="highway-sign" key={exit.id} onClick={()=>onSelect(exit)}><span className="sign-exit">EXIT {exit.number} <ArrowUpRight size={19}/></span><strong>{exit.title}</strong><span className="sign-distance">{exit.km} km <ArrowDown size={25}/></span></button>)}</nav></div>{!ready && <div className="acceleration-message"><span className="eyebrow">THE OPEN ROAD IS CALLING</span><h2>{speed < 30 ? 'Here we go.' : speed < 130 ? 'Getting up to speed.' : 'Pick your adventure.'}</h2><span>{speed >= 178 ? 'EXITS JUST AHEAD' : 'SETTLE IN. ENJOY THE RIDE.'}</span></div>}<div className="drive-road-label"><span>401</span> EASTBOUND <span className="tiny-dot"/> TORONTO</div><Cockpit speed={activeExit ? 0 : speed} rev={rev} onHorn={onHorn} honking={honking}/><div className="drive-controls" id="drive-controls"><button onClick={onRev} className={rev ? 'active' : ''}><Gauge size={17}/><span>{rev ? 'REVVING…' : 'REV ENGINE'}</span><kbd>R</kbd></button><button onClick={onHorn} className={honking ? 'active' : ''}><Megaphone size={17}/><span>{honking ? 'BEEP BEEP!' : 'HORN'}</span><kbd>H</kbd></button><div className="drive-controls-divider"/><button className="control-icon" onClick={onMute} aria-label={muted ? 'Unmute sound' : 'Mute sound'}>{muted ? <VolumeX size={18}/> : <Volume2 size={18}/>}</button><button className="control-icon" onClick={()=>setHelp(!help)} aria-label="Show driving help" aria-expanded={help}><CircleHelp size={18}/></button></div>{help && <div className="drive-help"><button className="icon-button" onClick={()=>setHelp(false)} aria-label="Close help"><X size={16}/></button><h3>Your ride. Your rules.</h3><p>Choose a green exit sign to explore. “Back on the road” continues your journey.</p><p><kbd>R</kbd> Rev engine <kbd>H</kbd> Horn <kbd>M</kbd> Sound <kbd>Esc</kbd> Close an exit</p><small>Return to the garage anytime for the full portfolio.</small></div>}{activeExit && <StopDialog key={activeExit.id} exit={activeExit} onBack={onBack} onGarage={onGarage}/>}</div>;
+  const movingToExit = maneuver === 'exiting' || maneuver === 'returning';
+  return <div className={`drive-screen topdown-screen maneuver-${maneuver}`}>
+    <TopDownDrive speed={activeExit ? 0 : speed} branchVisible={ready || maneuver !== 'cruising'} maneuver={maneuver} maneuverProgress={maneuverProgress} selectedExit={navigatingExit} honking={honking}/>
+    <div className="drive-header"><Brand onClick={onGarage}/><div className="drive-location"><span className="status-dot"/> THE SCENIC ROUTE <span>TOP-DOWN TOUR · ONTARIO</span></div><button className="return-garage" onClick={onGarage}><RotateCcw size={15}/><span>RETURN TO GARAGE</span></button></div>
+    <aside className={`map-directory ${ready ? 'directory-visible' : ''}`} aria-hidden={!ready} inert={!ready}>
+      <div className="map-sign-heading"><OntarioShield small/><div><span>EASTBOUND</span><h2>Choose your exit.</h2></div><ArrowUpRight size={26}/></div>
+      <nav aria-label="Highway exits">{EXITS.map(exit=><button key={exit.id} className="map-exit-sign" onClick={()=>onSelect(exit)}><span className="map-exit-number">{exit.number}</span><span><strong>{exit.title}</strong><small>{exit.subtitle}</small></span><ArrowUpRight size={20}/></button>)}</nav>
+      <div className="map-directory-note">FIVE DESTINATIONS. ONE SCENIC OFF-RAMP.</div>
+    </aside>
+    {!ready && !activeExit && <div className="map-drive-message"><span className="eyebrow">{movingToExit ? 'FOLLOWING THE OFF-RAMP' : 'THE OPEN ROAD IS CALLING'}</span><h2>{maneuver === 'exiting' ? `Next stop: ${navigatingExit.title}.` : maneuver === 'returning' ? 'Back to the open road.' : speed < 40 ? 'Here we go.' : 'Finding your next adventure.'}</h2><p>{movingToExit ? 'Car-XY is taking the scenic route.' : 'Your exit signs will appear at cruising speed.'}</p></div>}
+    <div className="map-compass" aria-hidden="true"><Navigation size={20}/><span>E</span></div>
+    <div className="map-telemetry" aria-label={`Speed ${speed} kilometres per hour, gear ${gearAt(speed)}`}><div className="map-telemetry-top"><span>AUDI R8 · CAR-XY</span><span className="status-dot"/></div><div className="map-speed"><span>{activeExit ? 'P' : gearAt(speed)}</span><strong>{speed.toString().padStart(3,'0')}</strong><small>KM/H</small></div><div className="map-rpm"><span style={{width:`${rpmAt(speed,rev)/8500*100}%`}}/></div><div className="map-drive-state">{activeExit ? 'PARKED · ENJOY THE STOP' : maneuver === 'exiting' ? 'INDICATOR ON · TAKING EXIT' : maneuver === 'returning' ? 'MERGING ONTO HIGHWAY 401' : ready ? 'CRUISING · PICK A DESTINATION' : 'ACCELERATING'}</div></div>
+    <div className="drive-controls" id="drive-controls"><button onClick={onRev} className={rev ? 'active' : ''}><Gauge size={17}/><span>{rev ? 'REVVING…' : 'REV ENGINE'}</span><kbd>R</kbd></button><button onClick={onHorn} className={honking ? 'active' : ''}><Megaphone size={17}/><span>{honking ? 'BEEP BEEP!' : 'HORN'}</span><kbd>H</kbd></button><div className="drive-controls-divider"/><button className="control-icon" onClick={onMute} aria-label={muted ? 'Unmute sound' : 'Mute sound'}>{muted ? <VolumeX size={18}/> : <Volume2 size={18}/>}</button><button className="control-icon" onClick={()=>setHelp(!help)} aria-label="Show driving help" aria-expanded={help}><CircleHelp size={18}/></button></div>
+    {help && <div className="drive-help"><button className="icon-button" onClick={()=>setHelp(false)} aria-label="Close help"><X size={16}/></button><h3>A little road trip.</h3><p>Choose a green sign. Car-XY will take the off-ramp and park at your destination. “Back on the road” merges you onto the highway again.</p><p><kbd>R</kbd> Recorded rev <kbd>H</kbd> Recorded horn <kbd>M</kbd> Sound</p><small>Return to the garage anytime for the full portfolio.</small></div>}
+    {activeExit && <StopDialog key={activeExit.id} exit={activeExit} onBack={onBack} onGarage={onGarage}/>}
+  </div>;
 }
 
 export default function App() {
-  const [mode, setMode] = useState('garage');
+  const [mode, setMode] = useState('landing');
   const [muted, setMuted] = useState(false);
   const [speed, setSpeed] = useState(0);
   const [ready, setReady] = useState(false);
   const [activeExit, setActiveExit] = useState(null);
+  const [navigatingExit, setNavigatingExit] = useState(null);
+  const [maneuver, setManeuver] = useState('cruising');
+  const [maneuverProgress, setManeuverProgress] = useState(0);
   const [rev, setRev] = useState(0);
   const [honking, setHonking] = useState(false);
   const [transition, setTransition] = useState(null);
-  const [driveSceneReady, setDriveSceneReady] = useState(false);
   const [run, setRun] = useState(0);
   const timers = useRef({});
+  const initialSpeed = useRef(0);
+  const latest = useRef({mode,speed,transition});
+  latest.current = {mode,speed,transition};
 
   useEffect(()=>{
     document.body.classList.toggle('in-drive', mode === 'drive');
-    return ()=>document.body.classList.remove('in-drive');
+    document.body.classList.toggle('on-landing', mode === 'landing');
+    return ()=>{ document.body.classList.remove('in-drive','on-landing'); };
   },[mode]);
 
   useEffect(()=>{
-    if (mode !== 'drive' || activeExit || !driveSceneReady || transition) return;
-    const start = performance.now();
+    if (mode !== 'drive' || maneuver !== 'cruising' || transition) return;
+    const started = performance.now();
+    const from = initialSpeed.current;
     setReady(false);
     let frame;
     function tick(now) {
-      const nextSpeed = speedAt(now-start, run > 1 ? 2600 : 5800);
-      setSpeed(nextSpeed); audio.update(nextSpeed, rev);
-      if (nextSpeed < 180) frame = requestAnimationFrame(tick);
+      const next = Math.round(from + (180-from) * speedAt(now-started,run > 1 ? 2600 : 5800)/180);
+      setSpeed(next);
+      if (next < 180) frame = requestAnimationFrame(tick);
       else setReady(true);
     }
     frame = requestAnimationFrame(tick);
     return ()=>cancelAnimationFrame(frame);
-  },[mode,activeExit,driveSceneReady,transition,run]);
+  },[mode,maneuver,transition,run]);
 
-  useEffect(()=>{ audio.update(activeExit ? 0 : speed, rev); },[speed,rev,activeExit]);
   useEffect(()=>{
-    const hide = ()=>{ if (document.hidden) { audio.stop(); } else if (mode === 'drive') { audio.resume(speed); } };
-    document.addEventListener('visibilitychange', hide);
-    return ()=>document.removeEventListener('visibilitychange',hide);
-  },[mode,speed]);
+    if (mode !== 'drive' || transition || !['exiting','returning'].includes(maneuver)) return;
+    const started = performance.now();
+    const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : EXIT_DURATION;
+    let frame;
+    function tick(now) {
+      const progress = Math.min(1,(now-started)/duration);
+      const eased = progress*progress*(3-2*progress);
+      setManeuverProgress(maneuver === 'exiting' ? eased : 1-eased);
+      setSpeed(Math.round(maneuver === 'exiting' ? 180*(1-eased) : 65*eased));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+      else if (maneuver === 'exiting') { setManeuver('parked'); setActiveExit(navigatingExit); }
+      else { initialSpeed.current = 65; setManeuver('cruising'); setNavigatingExit(null); setRun(value=>value+1); }
+    }
+    frame = requestAnimationFrame(tick);
+    return ()=>cancelAnimationFrame(frame);
+  },[mode,maneuver,navigatingExit,transition]);
+
+  useEffect(()=>{ audio.update(activeExit ? 0 : speed); },[speed,activeExit]);
+  useEffect(()=>{
+    const visibility = ()=>{
+      if (document.hidden) audio.stop();
+      else if (latest.current.mode === 'drive' && !latest.current.transition) audio.resume(latest.current.speed);
+    };
+    document.addEventListener('visibilitychange',visibility);
+    return ()=>document.removeEventListener('visibilitychange',visibility);
+  },[]);
   useEffect(()=>()=>{ Object.values(timers.current).forEach(clearTimeout); audio.stop(); },[]);
 
   function mute() { setMuted(audio.toggleMute()); }
-  function revEngine() { audio.rev(); setRev(1); clearTimeout(timers.current.rev); timers.current.rev=setTimeout(()=>setRev(0),1800); }
-  function horn() { audio.horn(); setHonking(true); clearTimeout(timers.current.horn); timers.current.horn=setTimeout(()=>setHonking(false),450); }
+  function revEngine() { audio.rev(); setRev(1); clearTimeout(timers.current.rev); timers.current.rev=setTimeout(()=>setRev(0),4000); }
+  function horn() { audio.horn(); setHonking(true); clearTimeout(timers.current.horn); timers.current.horn=setTimeout(()=>setHonking(false),1800); }
   function start() {
     if (transition || mode === 'drive') return;
-    audio.start(); setTransition('ignition'); setSpeed(0); setReady(false); setRun(1);
-    timers.current.start = setTimeout(()=>{ setMode('drive'); setDriveSceneReady(false); setTransition(null); },1800);
+    audio.start(); setTransition('ignition'); setSpeed(0); setReady(false); setRun(1); initialSpeed.current=0;
+    setActiveExit(null); setNavigatingExit(null); setManeuver('cruising'); setManeuverProgress(0);
+    timers.current.start=setTimeout(()=>{ setMode('drive'); setTransition(null); },1800);
   }
   function garage() {
+    if (transition) return;
     if (mode === 'garage') { document.getElementById('home')?.scrollIntoView({behavior:'smooth'}); return; }
-    setTransition('garage'); audio.garage(); setActiveExit(null);
-    timers.current.garage=setTimeout(()=>{ setMode('garage'); setSpeed(0); setReady(false); setTransition(null); requestAnimationFrame(()=>window.scrollTo({top:0})); },1000);
+    setTransition('garage'); audio.garage(); setActiveExit(null); setReady(false);
+    timers.current.garage=setTimeout(()=>{
+      setMode('garage'); setSpeed(0); setTransition(null); setNavigatingExit(null); setManeuver('cruising'); setManeuverProgress(0);
+      requestAnimationFrame(()=>window.scrollTo({top:0}));
+    },1000);
   }
-  function chooseExit(exit) { audio.update(0); setActiveExit(exit); setSpeed(0); }
-  function back() { setActiveExit(null); setReady(false); setRun(v=>v+1); audio.active=true; }
+  function home() {
+    Object.values(timers.current).forEach(clearTimeout); audio.stop();
+    setMode('landing'); setSpeed(0); setReady(false); setRev(0); setHonking(false); setTransition(null);
+    setActiveExit(null); setNavigatingExit(null); setManeuver('cruising'); setManeuverProgress(0);
+    requestAnimationFrame(()=>window.scrollTo({top:0}));
+  }
+  function chooseExit(exit) {
+    if (!ready || maneuver !== 'cruising') return;
+    setReady(false); setNavigatingExit(exit); setManeuver('exiting');
+  }
+  function back() { setActiveExit(null); setReady(false); setManeuver('returning'); audio.resume(0); }
 
   useEffect(()=>{
     function key(event) {
-      if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName) || event.target.isContentEditable) return;
+      if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName) || event.target.isContentEditable || latest.current.transition) return;
       if (event.key.toLowerCase()==='r') { event.preventDefault(); revEngine(); }
       if (event.key.toLowerCase()==='h') { event.preventDefault(); horn(); }
       if (event.key.toLowerCase()==='m') { event.preventDefault(); mute(); }
@@ -200,5 +283,16 @@ export default function App() {
     window.addEventListener('keydown',key); return ()=>window.removeEventListener('keydown',key);
   },[]);
 
-  return <><a href={mode==='drive'?'#drive-controls':'#projects'} className="skip-navigation">Skip to {mode==='drive'?'ride controls':'projects'}</a>{mode==='garage'?<><Header onStart={start} muted={muted} onMute={mute} garage={garage}/><main><GarageHero onStart={start} onRev={revEngine} onHorn={horn} revving={!!rev} honking={honking}/><RouteMap onStart={start} onSelect={()=>{}}/><Projects/><Teams/><Journey/><Skills/><Contact/></main><Footer onStart={start}/></>:<Drive speed={speed} ready={ready} activeExit={activeExit} onSelect={chooseExit} onBack={back} onGarage={garage} onRev={revEngine} onHorn={horn} rev={rev} honking={honking} muted={muted} onMute={mute} onSceneReady={()=>setDriveSceneReady(true)}/>}<div className="sr-only" role="status" aria-live="polite">{rev ? 'Engine revving' : honking ? 'Horn honking' : ready && mode==='drive' ? 'Cruising at 180 kilometres per hour. Choose an exit to explore.' : ''}</div>{transition&&<div className={`transition-screen ${transition}`} role="status"><div className="transition-mark"><Power size={27}/></div><div className="eyebrow">{transition==='ignition'?'5.2 LITRES. TEN CYLINDERS. ONE ADVENTURE.':'TAKING THE OFF-RAMP.'}</div><h2>{transition==='ignition'?'Let’s go for a ride.':'Welcome to the garage.'}</h2><div className="transition-line"><span/></div><span className="transition-caption">{transition==='ignition'?'ENGINE STARTING · OPENING THE ROAD':'PARKING UP · OPENING YOUR PORTFOLIO'}</span></div>}</>;
+  const landing = mode === 'landing';
+  return <>
+    <a href={mode==='drive'?'#drive-controls':landing?'#mode-choice':'#projects'} className="skip-navigation">Skip to {mode==='drive'?'ride controls':landing?'mode choice':'projects'}</a>
+    {mode === 'drive' ? <Drive speed={speed} ready={ready} activeExit={activeExit} navigatingExit={navigatingExit} maneuver={maneuver} maneuverProgress={maneuverProgress} onSelect={chooseExit} onBack={back} onGarage={garage} onRev={revEngine} onHorn={horn} rev={rev} honking={honking} muted={muted} onMute={mute}/> : <>
+      <Header landing={landing} onStart={start} muted={muted} onMute={mute} garage={home}/>
+      <main className={landing ? 'landing-page' : 'garage-page'}><GarageHero landing={landing} onGarage={garage} onStart={start} onRev={revEngine} onHorn={horn} revving={!!rev} honking={honking}/>
+        {!landing && <><RouteMap onStart={start} onSelect={()=>{}}/><Projects/><Teams/><Journey/><Skills/><Contact/></>}
+      </main>{!landing && <Footer onStart={start}/>}
+    </>}
+    <div className="sr-only" role="status" aria-live="polite">{maneuver === 'exiting' ? `Taking the off-ramp to ${navigatingExit?.title}.` : maneuver === 'returning' ? 'Merging back onto Highway 401.' : rev ? 'Engine revving' : honking ? 'Horn honking' : ready && mode==='drive' ? 'Cruising at 180 kilometres per hour. Choose an exit to explore.' : ''}</div>
+    {transition && <div className={`transition-screen ${transition}`} role="status"><div className="transition-mark"><Power size={27}/></div><div className="eyebrow">{transition==='ignition'?'5.2 LITRES. TEN CYLINDERS. ONE ADVENTURE.':'OPENING THE GARAGE.'}</div><h2>{transition==='ignition'?'Let’s go for a ride.':'Welcome to the garage.'}</h2><div className="transition-line"><span/></div><span className="transition-caption">{transition==='ignition'?'ENGINE STARTING · OPENING THE ROAD':'PARKING UP · OPENING YOUR PORTFOLIO'}</span></div>}
+  </>;
 }
