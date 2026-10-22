@@ -1,6 +1,6 @@
 import { Component, Suspense, lazy, useEffect, useRef, useState } from 'react';
-import { ArrowUpRight, ArrowRight, ArrowDown, Volume2, VolumeX, Download, Github, Linkedin, Menu, X, Power, Gauge, MapPin, RotateCcw, CircleHelp, ExternalLink, Check, Navigation, Hand, CarFront, AudioLines } from 'lucide-react';
-import { EXITS, speedAt, gearAt, rpmAt, EXIT_DURATION } from './drive.js';
+import { ArrowUpRight, ArrowRight, ArrowDown, Volume2, VolumeX, Download, Github, Linkedin, Menu, X, Power, Gauge, MapPin, RotateCcw, CircleHelp, ExternalLink, Check, Navigation, Hand, CarFront, AudioLines, Megaphone } from 'lucide-react';
+import { EXITS, speedAt, gearAt, rpmAt, revSpeedAt, revEnvelope, EXIT_DURATION } from './drive.js';
 import { links, projects, skills } from './data.js';
 import { audio } from './audio.js';
 import TopDownDrive from './TopDownDrive.jsx';
@@ -37,7 +37,7 @@ function Header({ onStart, muted, onMute, garage, landing = false }) {
   </header>;
 }
 
-function GarageHero({ onStart, onGarage, onRev, revving, landing = false }) {
+function GarageHero({ onStart, onGarage, onRev, onHorn, revving, honking, landing = false }) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   return <section className="garage-hero" id="home" aria-labelledby="hero-title">
@@ -61,7 +61,7 @@ function GarageHero({ onStart, onGarage, onRev, revving, landing = false }) {
       <div className="drag-hint"><Hand size={13}/><span>DRAG TO EXPLORE</span><span>↔</span></div>
       <div className="car-spec"><span className="r8-emblem"><i/>R8</span><div><strong>AUDI R8</strong><span>AUDI R8 · 5.2L V10 · 602 HP · QUATTRO</span></div><span className="car-spec-number">001 / 001</span></div>
     </div>
-    <div className="hero-bottom"><div className="location"><MapPin size={14}/><span>TORONTO, ON</span><span className="tiny-dot"/><span>43.6532° N, 79.3832° W</span></div><div className="garage-controls"><button className={revving ? 'active' : ''} onClick={onRev}><Gauge size={16}/>{revving ? 'REVVING…' : 'REV ENGINE'}<kbd>R</kbd></button></div></div>
+    <div className="hero-bottom"><div className="location"><MapPin size={14}/><span>TORONTO, ON</span><span className="tiny-dot"/><span>43.6532° N, 79.3832° W</span></div><div className="garage-controls"><button className={revving ? 'active' : ''} onClick={onRev}><Gauge size={16}/>{revving ? 'REVVING…' : 'REV ENGINE'}<kbd>R</kbd></button><button onClick={onHorn} className={honking?'active':''}><Megaphone size={16}/>{honking?'HONKING…':'HORN'}<kbd>H</kbd></button></div></div>
   </section>;
 }
 
@@ -160,7 +160,7 @@ function StopDialog({ exit, onBack, onGarage, origin = 'drive' }) {
   return <dialog className={`stop-dialog ${origin==='garage'?'garage-stop':''}`} ref={modal} aria-labelledby="stop-title"><div className="stop-shell"><div className="stop-header"><span><Navigation size={17}/><span id="stop-title">{origin==='garage'?'THE GARAGE':'EXIT '+exit.number} · {exit.title.toUpperCase()}</span></span><button className="icon-button" onClick={onBack} aria-label={origin==='garage'?'Close and return to the garage':'Close and return to the road'}><X size={20}/></button></div><div className="stop-scroll"><Content compact/></div><div className="stop-bottom">{origin==='drive'&&<button className="text-link" onClick={onGarage}><RotateCcw size={15}/> Return to garage</button>}<button className="start-button" onClick={onBack}>{origin==='garage'?'BACK TO GARAGE':'BACK ON THE ROAD'} <ArrowRight size={18}/></button></div></div></dialog>;
 }
 
-function Drive({ speed, ready, activeExit, navigatingExit, maneuver, maneuverProgress, onSelect, onBack, onGarage, onRev, rev, muted, onMute }) {
+function Drive({ speed, ready, activeExit, navigatingExit, maneuver, maneuverProgress, onSelect, onBack, onGarage, onRev, onHorn, rev, revProgress, honking, muted, onMute }) {
   const [help, setHelp] = useState(false);
   const movingToExit = maneuver === 'exiting' || maneuver === 'returning';
   return <div className={`drive-screen topdown-screen maneuver-${maneuver}`}>
@@ -173,9 +173,9 @@ function Drive({ speed, ready, activeExit, navigatingExit, maneuver, maneuverPro
     </aside>
     {!ready && !activeExit && <div className="map-drive-message"><span className="eyebrow">{maneuver === 'returning' ? 'JOINING THE ON-RAMP' : movingToExit ? 'FOLLOWING THE OFF-RAMP' : 'THE OPEN ROAD IS CALLING'}</span><h2>{maneuver === 'exiting' ? `Next stop: ${navigatingExit.title}.` : maneuver === 'returning' ? 'Back to the open road.' : speed < 40 ? 'Here we go.' : 'Finding your next adventure.'}</h2><p>{movingToExit ? 'Car-XY is taking the scenic route.' : 'Your exit signs will appear at cruising speed.'}</p></div>}
     <div className="map-compass" aria-hidden="true"><Navigation size={20}/><span>E</span></div>
-    <div className="map-telemetry" aria-label={`Speed ${speed} kilometres per hour, gear ${gearAt(speed)}`}><div className="map-telemetry-top"><span>AUDI R8 · CAR-XY</span><span className="status-dot"/></div><div className="map-speed"><span>{activeExit ? 'P' : gearAt(speed)}</span><strong>{speed.toString().padStart(3,'0')}</strong><small>KM/H</small></div><div className="map-rpm"><span style={{width:`${rpmAt(speed,rev)/8500*100}%`}}/></div><div className="map-drive-state">{activeExit ? 'PARKED · ENJOY THE STOP' : maneuver === 'exiting' ? 'INDICATOR ON · TAKING EXIT' : maneuver === 'returning' ? 'MERGING ONTO HIGHWAY 401' : ready ? 'CRUISING · PICK A DESTINATION' : 'ACCELERATING'}</div></div>
-    <div className="drive-controls" id="drive-controls"><button onClick={onRev} className={rev ? 'active' : ''}><Gauge size={17}/><span>{rev ? 'REVVING…' : 'REV ENGINE'}</span><kbd>R</kbd></button><div className="drive-controls-divider"/><button className="control-icon" onClick={onMute} aria-label={muted ? 'Unmute sound' : 'Mute sound'}>{muted ? <VolumeX size={18}/> : <Volume2 size={18}/>}</button><button className="control-icon" onClick={()=>setHelp(!help)} aria-label="Show driving help" aria-expanded={help}><CircleHelp size={18}/></button></div>
-    {help && <div className="drive-help"><button className="icon-button" onClick={()=>setHelp(false)} aria-label="Close help"><X size={16}/></button><h3>A little road trip.</h3><p>Choose a green sign. Car-XY will take the off-ramp and park at your destination. “Back on the road” merges you onto the highway again.</p><p><kbd>R</kbd> Recorded rev <kbd>M</kbd> Sound</p><small>Return to the garage anytime for the full portfolio.</small></div>}
+    <div className="map-telemetry" aria-label={`Speed ${speed} kilometres per hour, gear ${gearAt(speed)}`}><div className="map-telemetry-top"><span>AUDI R8 · CAR-XY</span><span className="status-dot"/></div><div className="map-speed"><span>{activeExit ? 'P' : gearAt(speed)}</span><strong>{speed.toString().padStart(3,'0')}</strong><small>KM/H</small></div><div className="map-rpm"><span style={{width:`${rpmAt(speed,rev?revEnvelope(revProgress):0)/8500*100}%`}}/></div><div className="map-drive-state">{activeExit ? 'PARKED · ENJOY THE STOP' : maneuver === 'exiting' ? 'INDICATOR ON · TAKING EXIT' : maneuver === 'returning' ? 'MERGING ONTO HIGHWAY 401' : ready ? 'CRUISING · PICK A DESTINATION' : 'ACCELERATING'}</div></div>
+    <div className="drive-controls" id="drive-controls"><button onClick={onRev} className={rev ? 'active' : ''}><Gauge size={17}/><span>{rev ? 'REVVING…' : 'REV ENGINE'}</span><kbd>R</kbd></button><button onClick={onHorn} className={honking?'active':''}><Megaphone size={17}/><span>{honking?'HONKING…':'HORN'}</span><kbd>H</kbd></button><div className="drive-controls-divider"/><button className="control-icon" onClick={onMute} aria-label={muted ? 'Unmute sound' : 'Mute sound'}>{muted ? <VolumeX size={18}/> : <Volume2 size={18}/>}</button><button className="control-icon" onClick={()=>setHelp(!help)} aria-label="Show driving help" aria-expanded={help}><CircleHelp size={18}/></button></div>
+    {help && <div className="drive-help"><button className="icon-button" onClick={()=>setHelp(false)} aria-label="Close help"><X size={16}/></button><h3>A little road trip.</h3><p>Choose a green sign. Car-XY will take the off-ramp and park at your destination. “Back on the road” merges you onto the highway again.</p><p><kbd>R</kbd> Recorded rev <kbd>H</kbd> Horn <kbd>M</kbd> Sound</p><small>Return to the garage anytime for the full portfolio.</small></div>}
     {activeExit && <StopDialog key={activeExit.id} exit={activeExit} onBack={onBack} onGarage={onGarage}/>}
   </div>;
 }
@@ -190,6 +190,8 @@ export default function App() {
   const [maneuver, setManeuver] = useState('cruising');
   const [maneuverProgress, setManeuverProgress] = useState(0);
   const [rev, setRev] = useState(0);
+  const [revProgress, setRevProgress] = useState(0);
+  const [honking, setHonking] = useState(false);
   const [transition, setTransition] = useState(null);
   const [run, setRun] = useState(0);
   const [garageSection, setGarageSection] = useState(null);
@@ -200,7 +202,13 @@ export default function App() {
   const latest = useRef({mode,speed,transition,maneuver});
   latest.current = {mode,speed,transition,maneuver};
 
-  useEffect(()=>audio.subscribe(({revving})=>setRev(revving?1:0)),[]);
+  useEffect(()=>audio.subscribe(({revving,honking})=>{setRev(revving?1:0);setHonking(honking);}),[]);
+  useEffect(()=>{
+    let frame;
+    function tick(){setRevProgress(audio.getRevProgress());frame=requestAnimationFrame(tick);}
+    if(rev)tick();else setRevProgress(0);
+    return ()=>cancelAnimationFrame(frame);
+  },[rev]);
 
   useEffect(()=>{
     document.body.classList.toggle('in-drive', mode === 'drive');
@@ -255,6 +263,7 @@ export default function App() {
 
   function mute() { setMuted(audio.toggleMute()); }
   function revEngine() { audio.rev(); }
+  function horn() { audio.horn(); }
   function start() {
     if (transition || mode === 'drive') return;
     audio.start(); setGarageSection(null); setReadAll(false); returnConsumed.current=false; setTransition('ignition'); setSpeed(0); setReady(false); setRun(1); initialSpeed.current=0;
@@ -299,25 +308,27 @@ export default function App() {
     function key(event) {
       if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName) || event.target.isContentEditable || latest.current.transition) return;
       if (event.key.toLowerCase()==='r') { event.preventDefault(); revEngine(); }
+      if (event.key.toLowerCase()==='h') { event.preventDefault(); horn(); }
       if (event.key.toLowerCase()==='m') { event.preventDefault(); mute(); }
     }
     window.addEventListener('keydown',key); return ()=>window.removeEventListener('keydown',key);
   },[]);
 
   const landing = mode === 'landing';
+  const rideSpeed = mode==='drive'&&maneuver==='cruising'&&ready ? revSpeedAt(speed,revProgress) : speed;
   return <>
     <a href={mode==='drive'?'#drive-controls':landing?'#mode-choice':'#garage-directory'} className="skip-navigation">Skip to {mode==='drive'?'ride controls':landing?'mode choice':'garage directory'}</a>
-    {mode === 'drive' ? <Drive speed={speed} ready={ready} activeExit={activeExit} navigatingExit={navigatingExit} maneuver={maneuver} maneuverProgress={maneuverProgress} onSelect={chooseExit} onBack={back} onGarage={garage} onRev={revEngine} rev={rev} muted={muted} onMute={mute}/> : mode === 'garage' ? <>
-      <GarageHub brand={<Brand onClick={home}/>} onStart={start} onSection={openGarageSection} onReadAll={showPortfolio} muted={muted} onMute={mute} onRev={revEngine} revving={!!rev} locked={!!transition||!!garageSection}/>
+    {mode === 'drive' ? <Drive speed={rideSpeed} ready={ready} activeExit={activeExit} navigatingExit={navigatingExit} maneuver={maneuver} maneuverProgress={maneuverProgress} onSelect={chooseExit} onBack={back} onGarage={garage} onRev={revEngine} onHorn={horn} honking={honking} rev={rev} revProgress={revProgress} muted={muted} onMute={mute}/> : mode === 'garage' ? <>
+      <GarageHub brand={<Brand onClick={home}/>} onStart={start} onSection={openGarageSection} onReadAll={showPortfolio} muted={muted} onMute={mute} onRev={revEngine} onHorn={horn} honking={honking} revving={!!rev} locked={!!transition||!!garageSection}/>
       {readAll&&<><div className="garage-portfolio-header" id="garage-portfolio" tabIndex="-1"><h2>The complete portfolio.</h2><button onClick={closePortfolio}><RotateCcw size={15}/> Back to the garage</button></div><RouteMap onStart={start} onSelect={()=>{}}/><Projects/><Teams/><Journey/><Skills/><Contact/><Footer onStart={start}/></>}
       {garageSection&&<StopDialog origin="garage" exit={garageDestination(garageSection)} onBack={()=>setGarageSection(null)} onGarage={()=>setGarageSection(null)}/>}
     </> : <>
       <Header landing={landing} onStart={start} muted={muted} onMute={mute} garage={home}/>
-      <main className={landing ? 'landing-page' : 'garage-page'}><GarageHero landing={landing} onGarage={garage} onStart={start} onRev={revEngine} revving={!!rev}/>
+      <main className={landing ? 'landing-page' : 'garage-page'}><GarageHero landing={landing} onGarage={garage} onStart={start} onRev={revEngine} onHorn={horn} honking={honking} revving={!!rev}/>
         {!landing && <><RouteMap onStart={start} onSelect={()=>{}}/><Projects/><Teams/><Journey/><Skills/><Contact/></>}
       </main>{!landing && <Footer onStart={start}/>}
     </>}
-    <div className="sr-only" role="status" aria-live="polite">{maneuver === 'exiting' ? `Taking the off-ramp to ${navigatingExit?.title}.` : maneuver === 'returning' ? 'Merging back onto Highway 401.' : rev ? 'Engine revving' : ready && mode==='drive' ? 'Cruising at 180 kilometres per hour. Choose an exit to explore.' : ''}</div>
+    <div className="sr-only" role="status" aria-live="polite">{maneuver === 'exiting' ? `Taking the off-ramp to ${navigatingExit?.title}.` : maneuver === 'returning' ? 'Merging back onto Highway 401.' : rev ? 'Engine revving' : honking ? 'Horn honking' : ready && mode==='drive' ? 'Cruising at 180 kilometres per hour. Choose an exit to explore.' : ''}</div>
     {transition && <div className={`transition-screen ${transition}`} role="status"><div className="transition-mark"><Power size={27}/></div><div className="eyebrow">{transition==='ignition'?'5.2 LITRES. TEN CYLINDERS. ONE ADVENTURE.':'OPENING THE GARAGE.'}</div><h2>{transition==='ignition'?'Let’s go for a ride.':'Welcome to the garage.'}</h2><div className="transition-line"><span/></div><span className="transition-caption">{transition==='ignition'?'ENGINE STARTING · OPENING THE ROAD':'PARKING UP · OPENING YOUR PORTFOLIO'}</span></div>}
   </>;
 }

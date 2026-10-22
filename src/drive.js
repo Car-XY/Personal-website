@@ -16,6 +16,15 @@ export function gearAt(speed) {
   return Math.min(6, Math.floor(speed / 34) + 1);
 }
 
+// A smooth temporary surge, timed to the recording, settles at the base speed.
+export function revEnvelope(progress) {
+  if (!Number.isFinite(progress) || progress <= 0 || progress >= 1) return 0;
+  return Math.sin(Math.PI * progress) ** 2;
+}
+export function revSpeedAt(baseSpeed, progress) {
+  return baseSpeed > 0 ? Math.round(baseSpeed + 26 * revEnvelope(progress)) : 0;
+}
+
 export function rpmAt(speed, rev = 0) {
   return Math.min(8500, 1100 + (speed % 34) * 125 + Math.min(speed, 160) * 11 + rev * 4200);
 }
