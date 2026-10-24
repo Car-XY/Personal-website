@@ -45,11 +45,11 @@ test('all highway exits have matching readable portfolio content', () => {
 
 test('the optimized real model, local decoder, resume, and recorded engine clips ship together', () => {
   assert.deepEqual(readdirSync('public/audio').sort(),['car-horn.mp3','engine-cruise.wav','engine-rev.wav','engine-start.wav']);
-  for (const asset of ['models/audi-r8.glb', 'draco/draco_decoder.wasm', 'Cary-Li-Resume.pdf', 'audio/engine-start.wav', 'audio/engine-rev.wav', 'audio/engine-cruise.wav', 'audio/car-horn.mp3', 'images/projects/anchor.png', 'images/projects/kera.png', 'images/projects/clearpath.png']) {
+  for (const asset of ['models/car-xy.glb', 'draco/draco_decoder.wasm', 'Cary-Li-Resume.pdf', 'audio/engine-start.wav', 'audio/engine-rev.wav', 'audio/engine-cruise.wav', 'audio/car-horn.mp3', 'images/projects/anchor.webp', 'images/projects/kera.webp', 'images/projects/clearpath.webp']) {
     assert.ok(existsSync(`public/${asset}`), asset);
   }
-  assert.equal(readFileSync('public/models/audi-r8.glb').subarray(0, 4).toString(), 'glTF');
-  const glb = readFileSync('public/models/audi-r8.glb');
+  assert.equal(readFileSync('public/models/car-xy.glb').subarray(0, 4).toString(), 'glTF');
+  const glb = readFileSync('public/models/car-xy.glb');
   const model = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString());
   const body = model.materials.find(material => /BodyMaterials/.test(material.name));
   const tyres = model.materials.find(material => /undercarriage|Tyre/.test(material.name));

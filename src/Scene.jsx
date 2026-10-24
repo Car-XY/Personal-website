@@ -18,19 +18,19 @@ export default function Scene({ onReady, onError }) {
     catch { callbacks.current.onError?.(); return; }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.7));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.5;
+    renderer.toneMappingExposure = 1.05;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 600);
-    let controls, car, disposed = false, frame;
+    let controls, car, disposed = false, frame, announced=false;
     const originalTextures = new Set();
     const clock = new THREE.Clock();
     const pmrem = new THREE.PMREMGenerator(renderer);
     const environment = new RoomEnvironment();
     const envTexture = pmrem.fromScene(environment, 0.04);
-    scene.environment = envTexture.texture;
+    scene.environment = envTexture.texture;scene.environmentIntensity=.55;
     environment.dispose();
 
       camera.position.set(8.2, 2.3, 7);
@@ -42,19 +42,19 @@ export default function Scene({ onReady, onError }) {
       controls.enableDamping = true; controls.dampingFactor = 0.06;
       controls.update();
       scene.add(new THREE.HemisphereLight('#c6d8ef', '#1a253b', 2));
-      const key = new THREE.DirectionalLight('#ecf8ff', 6);
+      const key = new THREE.DirectionalLight('#ecf8ff', 2.8);
       key.position.set(2, 7, 5); key.castShadow = true;
       key.shadow.mapSize.set(2048, 2048);
       Object.assign(key.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8 });
       key.shadow.bias = -0.0003; key.shadow.normalBias = 0.03;
       scene.add(key);
-      const rim = new THREE.DirectionalLight('#adc9ff', 5); rim.position.set(-4, 2, -3); scene.add(rim);
-      const warm = new THREE.DirectionalLight('#dbe9ff', 2); warm.position.set(-4, 3, 3); scene.add(warm);
+      const rim = new THREE.DirectionalLight('#adc9ff', 1.6); rim.position.set(-4, 2, -3); scene.add(rim);
+      const warm = new THREE.DirectionalLight('#dbe9ff', 1); warm.position.set(-4, 3, 3); scene.add(warm);
       const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.ShadowMaterial({ color: '#000000', opacity: 0.48 }));
       floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; floor.position.y = -0.015; scene.add(floor);
       const loader = new GLTFLoader();
       const draco = new DRACOLoader(); draco.setDecoderPath('/draco/'); loader.setDRACOLoader(draco);
-      loader.load('/models/audi-r8.glb?v=navy-clean-3', gltf => {
+      loader.load('/models/car-xy.glb', gltf => {
         if (disposed) { disposeSceneResources(gltf.scene); return; }
         car = gltf.scene;
         const bounds = new THREE.Box3().setFromObject(car);
@@ -71,7 +71,7 @@ export default function Scene({ onReady, onError }) {
           materials.forEach(mat => {
             Object.values(mat).forEach(value=>{if(value?.isTexture)originalTextures.add(value);});
             if (/BodyMaterial|RoofCanvas/i.test(mat.name)) {
-              mat.color.set('#102c52'); mat.metalness = 0.78; mat.roughness = 0.24;
+              mat.color.set('#102c52'); mat.metalness = 0.68; mat.roughness = 0.34;
               mat.map = null;
             }
             if (/WindscreenGlass|GlassFront|GlassBack/i.test(mat.name)) {
@@ -84,7 +84,7 @@ export default function Scene({ onReady, onError }) {
           });
         });
         addCarDetails(car);
-        scene.add(car); callbacks.current.onReady?.();
+        scene.add(car);
       }, undefined, () => { if(!disposed)callbacks.current.onError?.(); });
     const resize = () => {
       const { width, height } = container.getBoundingClientRect();
@@ -101,6 +101,7 @@ export default function Scene({ onReady, onError }) {
       const dt = Math.min(clock.getDelta(), 0.05);
       controls?.update();
       renderer.render(scene, camera);
+      if(car&&!announced){announced=true;callbacks.current.onReady?.();}
     }
     render();
     return () => {
@@ -111,5 +112,5 @@ export default function Scene({ onReady, onError }) {
     };
   }, []);
 
-  return <div ref={host} className="three-scene car-scene" role="img" aria-label="Interactive navy Audi R8 with Car-XY licence plates. Drag to rotate the car." />;
+  return <div ref={host} className="three-scene car-scene" role="img" aria-label="Interactive navy Car-XY sports car with Ontario licence plates. Drag to rotate the car." />;
 }

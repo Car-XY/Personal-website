@@ -15,11 +15,11 @@ export default function GarageRoom(props) {
   useEffect(()=>{
     const container=host.current;let renderer;
     try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});}catch{live.current.onError?.();return;}
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.domElement.setAttribute('aria-hidden','true');container.appendChild(renderer.domElement);
     const scene=new THREE.Scene();scene.background=new THREE.Color('#101620');scene.fog=new THREE.FogExp2('#111a23',.018);
     const camera=new THREE.PerspectiveCamera(54,1,.1,100),pmrem=new THREE.PMREMGenerator(renderer),environment=new RoomEnvironment();
-    const environmentMap=pmrem.fromScene(environment,.06);scene.environment=environmentMap.texture;scene.environmentIntensity=.35;environment.dispose();
+    const environmentMap=pmrem.fromScene(environment,.06);scene.environment=environmentMap.texture;scene.environmentIntensity=.25;environment.dispose();
     const oldTextures=new Set(),targets=new Map();
     const material=(color,roughness=.7,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
     const navy=material('#142f51',.38,.6),iron=material('#222b30',.6,.65),steel=material('#9aabb2',.27,.8),wood=material('#74604a',.9);
@@ -79,7 +79,7 @@ export default function GarageRoom(props) {
     scene.add(new THREE.HemisphereLight('#9daebc','#37332d',.7));
     function point(color,power,position,distance=18){const light=new THREE.PointLight(color,power,distance,2);light.position.set(...position);scene.add(light);return light;}
     for(const [x,z] of [[-3,1.2],[3,-1],[9,-5],[-8,-12]]){box([.24,.13,4.2],[x,7.3,z],iron);box([.14,.035,4],[x,7.22,z],fluorescent);for(const dz of [-1.7,1.7])box([.02,2.6,.02],[x,8.65,z+dz],steel);}
-    const key=new THREE.SpotLight('#eef4ff',480,30,.77,.6,1.8);key.position.set(-2.5,7,4);key.target.position.set(0,0,.3);key.castShadow=true;key.shadow.mapSize.set(2048,2048);key.shadow.bias=-.00015;key.shadow.normalBias=.025;scene.add(key,key.target);
+    const key=new THREE.SpotLight('#eef4ff',260,30,.77,.6,1.8);key.position.set(-2.5,7,4);key.target.position.set(0,0,.3);key.castShadow=true;key.shadow.mapSize.set(2048,2048);key.shadow.bias=-.00015;key.shadow.normalBias=.025;scene.add(key,key.target);
     point('#dce9f0',150,[4,6,-2]);point('#87c7ff',80,[-4,4,-6]);point('#e4ba8a',200,[8,5,-9]);point('#27adff',45,[-8,3,-19],13);point('#e44cb3',35,[-1,3,-19],12);
     const sun=new THREE.SpotLight('#f4bb77',550,35,.6,.25,1.6);sun.position.set(9,7,-18);sun.target.position.set(5,0,-7);scene.add(sun,sun.target);
     const bench=group('projects');box([2.5,.16,1.25],[-3.9,1.05,.5],wood,bench);
@@ -95,8 +95,8 @@ export default function GarageRoom(props) {
     for(let x=-7.7;x<-5.2;x+=.17)for(let y=1.85;y<3;y+=.17){const peg=mesh(new THREE.SphereGeometry(.013,4,3),steel,[x,y,-5.48],chest);peg.castShadow=false;}
     for(let i=0;i<7;i++){const tool=box([.055,.5,.07],[-7.5+i*.3,2.35,-5.39],i%2?steel:yellow,chest);tool.rotation.z=.2;mesh(new THREE.TorusGeometry(.065,.025,6,10),steel,[-7.45+i*.3,2.6,-5.39],chest);}
     const story=group('journey');box([3.8,2.15,.16],[-3.8,2.25,-14],iron,story);
-    const board=print(1024,640,ctx=>{ctx.fillStyle='#bdb7a2';ctx.fillRect(0,0,1024,640);ctx.fillStyle='#1d3448';ctx.font='bold 65px Arial';ctx.fillText('THE ROAD SO FAR',50,100);
-      ['UNIVERSITY OF TORONTO','FORMULA + BLUE SKY SOLAR','THE FUNDAMENTAL WHY','CHAMPION SWIM SCHOOL'].forEach((text,i)=>{const y=190+i*110;ctx.fillStyle=['#173858','#49645c','#98734e','#526b82'][i];ctx.fillRect(55,y-25,40,40);ctx.fillStyle='#233a4b';ctx.font='bold 31px Arial';ctx.fillText(text,125,y);ctx.font='18px monospace';ctx.fillText(['ENGINEERING SCIENCE','CODE THAT MOVES CARS','CURIOSITY, ON RECORD','TEACHING / LEARNING'][i],125,y+30);});});
+    const board=print(1024,640,ctx=>{ctx.fillStyle='#bdb7a2';ctx.fillRect(0,0,1024,640);ctx.fillStyle='#1d3448';ctx.font='bold 65px Arial';ctx.fillText('ABOUT CARY',50,100);
+      ['UNIVERSITY OF TORONTO','FORMULA + SOLAR','THE FUNDAMENTAL WHY','CHAMPION SWIM SCHOOL'].forEach((text,i)=>{const y=190+i*110;ctx.fillStyle=['#173858','#49645c','#98734e','#526b82'][i];ctx.fillRect(55,y-25,40,40);ctx.fillStyle='#233a4b';ctx.font='bold 31px Arial';ctx.fillText(text,125,y);ctx.font='18px monospace';ctx.fillText(['ENGINEERING SCIENCE','CODE THAT MOVES CARS','CURIOSITY, ON RECORD','TEACHING / LEARNING'][i],125,y+30);});});
     sign([3.6,1.98],[-3.8,2.25,-13.9],board,story);for(const x of [-5.3,-2.3])box([.07,2,.07],[x,1,-14],steel,story);
     const rack=group('teams');for(const x of [6.8,10.8])for(const z of [-11,-9.2])box([.1,4.4,.1],[x,2.2,z],iron,rack);
     for(const y of [.18,1.6,3.1,4.3])box([4.2,.1,2],[8.8,y,-10.1],wood,rack);
@@ -111,19 +111,19 @@ export default function GarageRoom(props) {
     for(let i=0;i<2;i++){const rim=mesh(new THREE.TorusGeometry(.36,.065,8,24),steel,[-2.9,.5,-2.7+i*.65]);rim.rotation.x=.4;for(let j=0;j<5;j++){const spoke=box([.04,.67,.06],[-2.9,.5,-2.7+i*.65],steel);spoke.rotation.z=j*Math.PI/5;}}
     for(let i=0;i<4;i++){box([1.5,.13,1.1],[11.5,.1+i*.2,-3],wood);for(let j=0;j<3;j++)box([.13,.12,1.1],[11+j*.5,.2+i*.2,-3],wood);}
     const carGroup=group('drive'),draco=new DRACOLoader();draco.setDecoderPath('/draco/');const loader=new GLTFLoader();loader.setDRACOLoader(draco);
-    let disposed=false,frame,needsRender=true;
-    loader.load('/models/audi-r8.glb?v=navy-clean-3',gltf=>{
+    let disposed=false,frame,needsRender=true,carLoaded=false,announced=false;
+    loader.load('/models/car-xy.glb',gltf=>{
       if(disposed){disposeSceneResources(gltf.scene);return;}const car=gltf.scene,bounds=new THREE.Box3().setFromObject(car),size=bounds.getSize(new THREE.Vector3());car.scale.setScalar(5.1/Math.max(size.x,size.z));
       const scaled=new THREE.Box3().setFromObject(car),centre=scaled.getCenter(new THREE.Vector3());car.position.set(-centre.x,-scaled.min.y+.07,-centre.z);
       car.traverse(object=>{if(!object.isMesh)return;object.castShadow=true;object.receiveShadow=true;(Array.isArray(object.material)?object.material:[object.material]).forEach(mat=>{
         Object.values(mat).forEach(value=>{if(value?.isTexture)oldTextures.add(value);});
-        if(/BodyMaterial|RoofCanvas/i.test(mat.name)){mat.color.set('#102c52');mat.metalness=.78;mat.roughness=.24;mat.map=null;}
+        if(/BodyMaterial|RoofCanvas/i.test(mat.name)){mat.color.set('#102c52');mat.metalness=.68;mat.roughness=.34;mat.map=null;}
         if(/WindscreenGlass|GlassFront|GlassBack/i.test(mat.name)){mat.color.set('#172a31');mat.transparent=true;mat.opacity=.84;mat.roughness=.14;mat.metalness=.65;}
         if(/LightFrontHighlight|FarLight/i.test(mat.name)){mat.emissive.set('#e3f4ff');mat.emissiveIntensity=2;}
         if(/LightBackHighlight/i.test(mat.name)){mat.emissive.set('#ef2424');mat.emissiveIntensity=1.2;}
-      });});addCarDetails(car);carGroup.add(car);needsRender=true;live.current.onReady?.();
+      });});addCarDetails(car);carGroup.add(car);needsRender=true;carLoaded=true;
     },undefined,()=>{if(!disposed)live.current.onError?.();});
-    const composer=new EffectComposer(renderer),bloom=new UnrealBloomPass(new THREE.Vector2(1,1),.28,.45,1.2),outputPass=new OutputPass();
+    const composer=new EffectComposer(renderer),bloom=new UnrealBloomPass(new THREE.Vector2(1,1),.12,.35,1.5),outputPass=new OutputPass();
     composer.addPass(new RenderPass(scene,camera));composer.addPass(bloom);composer.addPass(outputPass);
     const selection=new THREE.BoxHelper(undefined,'#a8dfff');selection.visible=false;selection.material.transparent=true;selection.material.opacity=.3;selection.material.depthTest=false;scene.add(selection);
     const resize=()=>{
@@ -142,12 +142,12 @@ export default function GarageRoom(props) {
     const leave=()=>{pressed=null;lastHover=null;live.current.onHover?.(null);};const lost=e=>{e.preventDefault();live.current.onError?.();};const canvas=renderer.domElement;
     canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerleave',leave);canvas.addEventListener('webglcontextlost',lost);
     let selected=null;const visible=()=>{needsRender=true;};document.addEventListener('visibilitychange',visible);
-    function render(){frame=requestAnimationFrame(render);if(document.hidden)return;const next=live.current.disabled?null:live.current.highlighted;if(next!==selected){selected=next;selection.visible=!!targets.get(next);needsRender=true;}if(!needsRender)return;if(selection.visible)selection.setFromObject(targets.get(next));composer.render();needsRender=false;}render();
+    function render(){frame=requestAnimationFrame(render);if(document.hidden)return;const next=live.current.disabled?null:live.current.highlighted;if(next!==selected){selected=next;selection.visible=!!targets.get(next);needsRender=true;}if(!needsRender)return;if(selection.visible)selection.setFromObject(targets.get(next));composer.render();needsRender=false;if(carLoaded&&!announced){announced=true;live.current.onReady?.();}}render();
     return()=>{
       disposed=true;cancelAnimationFrame(frame);observer.disconnect();draco.dispose();document.removeEventListener('visibilitychange',visible);
       canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerleave',leave);canvas.removeEventListener('webglcontextlost',lost);
       bloom.dispose();outputPass.dispose();composer.dispose();disposeSceneResources(scene,oldTextures);environmentMap.dispose();pmrem.dispose();renderer.dispose();canvas.remove();
     };
   },[]);
-  return <div className="garage-three-room" ref={host} role="img" aria-label="An industrial workshop in three dimensions: navy Audi R8 on a metal service bay, fluorescent lights, a steel mezzanine, workbench, racing shelves and tools."/>;
+  return <div className="garage-three-room" ref={host} role="img" aria-label="An industrial workshop in three dimensions: navy Car-XY sports car on a metal service bay, fluorescent lights, a steel mezzanine, workbench, racing shelves and tools."/>;
 }

@@ -1,9 +1,9 @@
 export const EXITS = [
   { id: 'projects', number: '01', title: 'Projects', subtitle: 'Ideas, built into reality', km: '1.2' },
   { id: 'teams', number: '02', title: 'Design Teams', subtitle: 'Code that moves cars', km: '2.4' },
-  { id: 'journey', number: '03', title: 'The Journey', subtitle: 'The road so far', km: '3.6' },
-  { id: 'skills', number: '04', title: 'Under the Hood', subtitle: 'My technical toolkit', km: '4.8' },
-  { id: 'contact', number: '05', title: 'Let’s Connect', subtitle: 'The next adventure', km: '6.0' },
+  { id: 'journey', number: '03', title: 'About', subtitle: 'The road so far', km: '3.6' },
+  { id: 'skills', number: '04', title: 'Skills', subtitle: 'My technical toolkit', km: '4.8' },
+  { id: 'contact', number: '05', title: 'Contact', subtitle: 'The next adventure', km: '6.0' },
 ];
 
 export function speedAt(elapsed, duration = 5800) {

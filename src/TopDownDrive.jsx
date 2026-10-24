@@ -3,17 +3,17 @@ import { exitPose, entryPose, advanceWorld, OFF_RAMP, ON_RAMP, rampPath, highway
 
 export function CarSprite({ turning = false, turnSide = 'right', speed = 0 }) {
   return <g className="map-car">
-    <defs><linearGradient id="map-r8-paint" x1="0" x2="1"><stop stopColor="#102a55"/><stop offset=".3" stopColor="#4271a5"/><stop offset=".52" stopColor="#1d4678"/><stop offset=".84" stopColor="#112e57"/><stop offset="1" stopColor="#08192e"/></linearGradient><linearGradient id="map-r8-glass" x2=".25" y2="1"><stop stopColor="#8ba7ba"/><stop offset=".4" stopColor="#203b51"/><stop offset="1" stopColor="#102332"/></linearGradient><linearGradient id="r8-slipstream" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#d9edff" stopOpacity=".85"/><stop offset="1" stopColor="#c6e3ff" stopOpacity="0"/></linearGradient></defs>
-    {speed > 45 && <g className="r8-wake" opacity={Math.min(1,(speed-45)/135)} fill="none" stroke="url(#r8-slipstream)" strokeWidth="1.8" strokeLinecap="round">
+    <defs><linearGradient id="map-car-paint" x1="0" x2="1"><stop stopColor="#102a55"/><stop offset=".3" stopColor="#4271a5"/><stop offset=".52" stopColor="#1d4678"/><stop offset=".84" stopColor="#112e57"/><stop offset="1" stopColor="#08192e"/></linearGradient><linearGradient id="map-car-glass" x2=".25" y2="1"><stop stopColor="#8ba7ba"/><stop offset=".4" stopColor="#203b51"/><stop offset="1" stopColor="#102332"/></linearGradient><linearGradient id="car-slipstream" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#d9edff" stopOpacity=".85"/><stop offset="1" stopColor="#c6e3ff" stopOpacity="0"/></linearGradient></defs>
+    {speed > 45 && <g className="car-wake" opacity={Math.min(1,(speed-45)/135)} fill="none" stroke="url(#car-slipstream)" strokeWidth="1.8" strokeLinecap="round">
       <path d={`M-22 64C-28 88-29 114-25 ${95+speed*.35}`}/><path d={`M22 64C28 88 29 114 25 ${95+speed*.35}`}/>
       <path d={`M-34 54C-41 77-44 98-41 ${83+speed*.24}`} strokeWidth="1"/><path d={`M34 54C41 77 44 98 41 ${83+speed*.24}`} strokeWidth="1"/>
       <path d={`M0 78V${104+speed*.22}`} strokeWidth="1" opacity=".4"/>
     </g>}
     <ellipse cx="4" cy="7" rx="35" ry="68" fill="#071018" opacity=".4"/>
     <g fill="#111820"><rect x="-31" y="-36" width="10" height="26" rx="3"/><rect x="21" y="-36" width="10" height="26" rx="3"/><rect x="-31" y="22" width="10" height="28" rx="3"/><rect x="21" y="22" width="10" height="28" rx="3"/></g>
-    <path d="M-21-61Q-29-57-29-42L-27 47Q-26 61-19 63H19Q26 61 27 47L29-42Q29-57 21-61Q0-67-21-61Z" fill="url(#map-r8-paint)" stroke="#82a4c0" strokeWidth="1.3"/>
+    <path d="M-21-61Q-29-57-29-42L-27 47Q-26 61-19 63H19Q26 61 27 47L29-42Q29-57 21-61Q0-67-21-61Z" fill="url(#map-car-paint)" stroke="#82a4c0" strokeWidth="1.3"/>
     <path d="M-19-53 19-53 21-30Q0-36-21-30Z" fill="#244c7c" stroke="#6d92b6" strokeWidth=".65"/>
-    <path d="M-22-28Q0-36 22-28L17-5H-17Z" fill="url(#map-r8-glass)" stroke="#7893a7" strokeWidth=".9"/>
+    <path d="M-22-28Q0-36 22-28L17-5H-17Z" fill="url(#map-car-glass)" stroke="#7893a7" strokeWidth=".9"/>
     <path d="M-16-3H16L18 28Q0 23-18 28Z" fill="#163962" stroke="#547da5" strokeWidth=".7"/>
     <path d="M-18 30Q0 24 18 30L22 45H-22Z" fill="#172c3e" stroke="#637d90" strokeWidth=".8"/>
     {[0,1,2,3].map(n=><path key={n} d={`M-14 ${33+n*2.8}H14`} stroke="#637b90" strokeWidth="1"/>)}

@@ -1,0 +1,115 @@
+.brand-symbol {padding-right:0;transform:none}
+.landing-page .garage-hero {display:grid;grid-template-columns:1fr 1.2fr;gap:32px;align-items:center;min-height:calc(100svh - 100px);padding:44px var(--gutter) 0}
+.landing-page .hero-copy {width:100%;padding-top:0}
+.hero-copy h1 {font-size:clamp(68px,7.4vw,112px);width:100%;margin:20px 0 25px}
+.hero-intro {font-size:16px;max-width:450px;line-height:1.7}
+.hero-description {font-size:13px;margin-top:14px}
+.landing-page .hero-cta {position:static;inset:auto;display:flex;flex-direction:row;flex-wrap:wrap;gap:12px;width:auto;max-width:none;margin-top:25px}
+.hero-cta .start-button {padding:17px 18px;font-size:10px;gap:10px}
+.hero-cta .start-button svg:last-child {margin-left:0}
+.hero-cta .enter-garage-button {padding:17px 14px;font-size:10px;width:auto;border:1px solid #b3cfff40}
+.hero-copy .currently-note {margin-top:24px;max-width:450px;font-size:12px;line-height:1.75;color:#b8c6d8;pointer-events:auto}
+.landing-page .sound-note {position:static;margin-top:16px;font-size:8px}
+.landing-page .car-stage {position:relative;inset:auto;width:100%;height:500px;border:1px solid #afc9eb22;border-radius:10px;background:#0d1c30;overflow:hidden;align-self:center}
+.car-stage .garage-wall {inset:0;transform:none;border:0;background:linear-gradient(#14263b,#101e31)}
+.car-stage .ceiling-light,.car-stage .garage-floor,.car-stage .floor-ring {display:none}
+.car-poster {position:absolute;inset:20px 0 80px;width:100%;height:calc(100% - 100px);object-fit:contain;z-index:1;transition:opacity .25s}
+.car-stage .car-scene {inset:0 0 84px;z-index:2;opacity:0;transition:opacity .25s}
+.car-stage.scene-ready .car-scene {opacity:1}
+.car-stage.scene-ready .car-poster {opacity:0;pointer-events:none}
+.car-view-label {top:20px;right:22px;z-index:3}
+.car-visual-controls {position:absolute;bottom:88px;left:22px;right:22px;display:flex;justify-content:space-between;align-items:center;gap:10px;z-index:3}
+.car-visual-controls>span {display:flex;align-items:center;gap:7px;font:7px var(--mono);color:#9bb1c9}
+.car-visual-controls button {margin-left:auto;padding:9px 10px;min-height:34px;font:7px var(--mono);letter-spacing:.5px;background:#101f33d9;border:1px solid #9dbbdd38;border-radius:3px}
+.car-spec {left:22px;right:22px;bottom:0;min-height:74px}
+.car-spec strong {font-size:12px}
+.car-spec>div>span {font-size:8px}
+.landing-page .hero-bottom {position:relative;inset:auto;grid-column:1/-1;height:72px;margin-top:0}
+.garage-three-room {opacity:0;transition:opacity .2s}
+.scene-ready .garage-three-room {opacity:1}
+.garage-room-backup {opacity:1;transition:opacity .2s;background:#17283b}
+.scene-ready .garage-room-backup {opacity:0;pointer-events:none}
+.garage-room-backup img {position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:0;clip-path:none}
+.garage-room-caption>button {pointer-events:auto;border:1px solid #c1d4e744;background:#101e31d9;padding:9px 12px;font:7px var(--mono);letter-spacing:.6px}
+.garage-open>.status-dot {margin-left:0}
+.garage-car-spec {font:9px var(--mono);letter-spacing:1px;color:#bdccdf}
+.garage-car-spec small {display:block;margin-top:7px;color:#8ba3bb;font-size:7px}
+.garage-room-intro h1 {font-size:clamp(32px,3vw,46px)}
+.garage-room-intro p {font-size:12px}
+.supplied-art {background:#142a42;min-height:190px}
+.supplied-art img {opacity:0;transition:opacity .2s}
+.supplied-art.image-ready img {opacity:1}
+.thumbnail-placeholder {position:absolute;inset:0;display:grid;place-items:center;color:#adbed2;font:500 17px var(--mono);background:linear-gradient(120deg,#1a314b,#102137)}
+.project-title-row {gap:12px;flex-wrap:wrap}
+.project-status {font:9px var(--mono);letter-spacing:.2px;color:#b6c9dd;border:1px solid #7994b944;padding:6px 8px;border-radius:3px;white-space:nowrap}
+.project-status.status-live {color:#99d7bc;border-color:#80c9a84d}
+.project-status.status-in-development {color:#e2c087;border-color:#d0aa6544}
+.project-contributions {padding-left:18px;margin:17px 0;color:#b6c4d6;font-size:12px;line-height:1.8}
+.project-contributions li+li {margin-top:5px}
+.project-card .project-outcome {color:#e4eef9;font-weight:600;border-left:2px solid #a9c7ef;padding-left:12px;margin-top:18px;font-size:12px}
+.project-card .project-note {font-size:11px;line-height:1.7;color:#9cacbf;margin-top:12px}
+.project-links {display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:22px;padding-top:16px;border-top:1px solid #9db3ce24}
+.project-links a {display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#bed6f5;border-bottom:1px solid #b3cfff44;padding-bottom:3px}
+.private-source {font:9px var(--mono);color:#96a8bc}
+.solar-word {left:22px;right:22px;top:40px;white-space:nowrap;font-size:clamp(38px,4.8vw,66px);letter-spacing:-1px}
+.skill-column li {justify-content:flex-start;line-height:1.5}
+.contact-section h2 {font-size:clamp(55px,7vw,95px);line-height:1.05;letter-spacing:-.5px}
+.contact-bottom .availability-line {max-width:650px;font-size:16px;line-height:1.75}
+.footer>div>span:last-child {white-space:pre;font-size:10px}
+.skip-navigation {white-space:pre}
+.stop-shell {min-height:0}
+.stop-scroll {min-height:0}
+.stop-scroll .project-card p,.stop-scroll .project-contributions {font-size:12px}
+.stop-scroll .project-status {font-size:8px}
+.stop-scroll .solar-word {font-size:clamp(34px,5.3vw,58px);left:20px;right:20px}
+.stop-scroll .availability-line {font-size:14px}
+.stop-scroll .project-note {font-size:11px}
+@media(max-width:1000px) {
+  .landing-page .garage-hero {grid-template-columns:1fr 1fr;gap:24px}
+  .landing-page .car-stage {height:450px}
+  .hero-intro {font-size:14px}
+  .hero-copy .currently-note {font-size:11px}
+}
+@media(max-width:760px) {
+  .landing-page .garage-hero {grid-template-columns:1fr;min-height:0;padding-top:32px;gap:26px}
+  .hero-copy h1 {font-size:80px;margin-top:18px}
+  .hero-intro {max-width:590px;font-size:15px}
+  .hero-copy .currently-note {max-width:590px;font-size:12px;margin-top:20px}
+  .landing-page .hero-cta {flex-direction:row;align-items:stretch}
+  .landing-page .car-stage {height:400px}
+  .landing-page .hero-bottom {height:76px}
+  .garage-room-intro p {display:none}
+  .solar-word {font-size:58px;right:20px}
+}
+@media(max-width:480px) {
+  .site-header {height:76px}
+  .hero-copy h1 {font-size:70px}
+  .landing-page .hero-cta {flex-direction:column;gap:10px}
+  .landing-page .hero-cta button {width:100%;min-height:48px;justify-content:space-between;font-size:10px}
+  .landing-page .car-stage {height:310px}
+  .car-spec {min-height:65px;left:17px;right:17px}
+  .car-spec>div>span {font-size:7px}
+  .car-view-label {font-size:6px;right:17px}
+  .car-visual-controls {left:17px;right:17px;bottom:73px}
+  .car-visual-controls>span {font-size:6px;letter-spacing:0}
+  .car-visual-controls button {font-size:6px;padding:8px}
+  .car-stage .car-scene {bottom:65px}
+  .car-poster {bottom:65px;height:calc(100% - 85px)}
+  .garage-controls {gap:15px}
+  .garage-controls>button {font-size:7px;gap:6px}
+  .location {font-size:7px;gap:6px}
+  .garage-room-stage {min-height:500px}
+  .garage-car-spec {font-size:8px;letter-spacing:.4px}
+  .project-status {font-size:8px}
+  .project-links {gap:16px}
+  .project-contributions {font-size:12px}
+  .solar-word {font-size:clamp(36px,14vw,58px);right:22px}
+  .stop-scroll .solar-word {font-size:clamp(32px,12vw,51px)}
+  .contact-bottom .availability-line {font-size:14px}
+  .stop-scroll .availability-line {font-size:13px}
+  .stop-scroll .contact-section h2 {font-size:50px}
+}
+@media(prefers-reduced-motion:reduce) {
+  .car-poster,.car-stage .car-scene,.garage-three-room,.garage-room-backup,.supplied-art img {transition:none}
+  .revving .car-scene {animation:none}
+}

@@ -1,22 +1,24 @@
 import { Component, Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, ArrowRight, ArrowDown, Volume2, VolumeX, Download, Github, Linkedin, Menu, X, Power, Gauge, MapPin, RotateCcw, CircleHelp, ExternalLink, Check, Navigation, Hand, CarFront, AudioLines, Megaphone } from 'lucide-react';
 import { EXITS, speedAt, gearAt, rpmAt, revSpeedAt, revEnvelope, EXIT_DURATION } from './drive.js';
-import { links, projects, skills } from './data.js';
+import { links, projects, skills, availability, currently } from './data.js';
 import { audio } from './audio.js';
 import TopDownDrive from './TopDownDrive.jsx';
 import GarageHub from './GarageHub.jsx';
 import { garageDestination, canReturnToRoad } from './garage.js';
+import { useSceneEnhancement } from './visuals.js';
 
 const Scene = lazy(() => import('./Scene.jsx'));
 
 class SceneBoundary extends Component {
   state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
-  render() { return this.state.failed ? <div className="scene-fallback"><CarFront size={64} /><span>The garage is open. Explore the portfolio below.</span></div> : this.props.children; }
+  componentDidCatch() { this.props.onError?.(); }
+  render() { return this.state.failed ? null : this.props.children; }
 }
 
 function Brand({ onClick }) {
-  return <button className="brand" onClick={onClick} aria-label="Cary Li home"><span className="brand-symbol">c<span>↗</span></span><span>CAR<span className="brand-dash">—</span>XY<small>CARY LI’S PERSONAL GARAGE</small></span></button>;
+  return <button className="brand" onClick={onClick} aria-label="Cary Li home"><span className="brand-symbol">c</span><span>CAR<span className="brand-dash">—</span>XY<small>CARY LI’S PERSONAL GARAGE</small></span></button>;
 }
 
 function OntarioShield({ small = false }) {
@@ -32,51 +34,52 @@ function Header({ onStart, muted, onMute, garage, landing = false }) {
       <a href="#route" onClick={() => setMenu(false)}>The Route <span>02</span></a>
       <a href="#contact" onClick={() => setMenu(false)}>Let’s Talk <ArrowUpRight size={14} /></a>
     </nav>}
-    {landing && <div className="landing-header-note"><span className="status-dot"/> TWO WAYS TO EXPLORE. ONE CURIOUS MIND.</div>}
+    {landing && <div className="landing-header-note"><span className="status-dot"/> CARY LI · ENGINEERING SCIENCE</div>}
     <div className="header-actions"><a href="/Cary-Li-Resume.pdf" className="resume-link" target="_blank" rel="noreferrer">Résumé <ArrowUpRight size={15}/></a><span className="header-divider"/><button className="icon-button sound-toggle" onClick={onMute} aria-label={muted ? 'Unmute sound' : 'Mute sound'} aria-pressed={!muted}>{muted ? <VolumeX size={18}/> : <Volume2 size={18}/>}</button><button className="mobile-menu icon-button" aria-label={menu ? 'Close navigation' : 'Open navigation'} onClick={() => setMenu(!menu)}>{menu ? <X/> : <Menu/>}</button></div>
   </header>;
 }
 
 function GarageHero({ onStart, onGarage, onRev, onHorn, revving, honking, landing = false }) {
-  const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const visual=useSceneEnhancement();
   return <section className="garage-hero" id="home" aria-labelledby="hero-title">
-    <div className="hero-grid" aria-hidden="true" />
+    <div className="hero-grid" aria-hidden="true"/>
     <div className="hero-copy">
-      <div className="eyebrow"><span className="status-dot"/> ENGINEERING SCIENCE · UNIVERSITY OF TORONTO</div>
-      <h1 id="hero-title">DRIVEN BY<br/><span>CURIOSITY.</span><span className="heading-period"/></h1>
-      <p className="hero-intro">Hey, I’m <strong>Cary.</strong> Engineer in the making.<br/>Builder by nature. Always taking the scenic route.</p>
-      <p className="hero-description">From neural networks to racing lines, I build things that move us forward. Hop in. I’ll show you around.</p>
-      <div className="hero-cta" id={landing ? 'mode-choice' : undefined}><button className="start-button" onClick={onStart}><Power size={18}/><span>{landing ? 'TEST DRIVE CAR-XY' : 'START THE ENGINE'}</span><ArrowUpRight size={21}/></button>{landing ? <button className="enter-garage-button" onClick={onGarage}>ENTER THE GARAGE <ArrowRight size={18}/></button> : <a className="skip-link" href="#projects">Or, explore at your own pace <ArrowDown size={14}/></a>}</div>
-      <div className="sound-note"><AudioLines size={15}/><span>Sound on. Seatbelt optional.</span></div>
+      <div className="eyebrow"><span className="status-dot"/> UNIVERSITY OF TORONTO</div>
+      <h1 id="hero-title">Hey, I’m<br/><span>Cary.</span></h1>
+      <p className="hero-intro">First-year Engineering Science at U of T. I build ML models, 3D web apps, and race-car algorithms.</p>
+      <p className="hero-description">Hop in — I’ll show you around.</p>
+      <div className="hero-cta" id={landing?'mode-choice':undefined}><button className="start-button" onClick={onStart}><Power size={18}/><span>TEST DRIVE CAR-XY</span><ArrowUpRight size={21}/></button><button className="enter-garage-button" onClick={onGarage}>ENTER THE GARAGE <ArrowRight size={18}/></button></div>
+      <p className="currently-note">{currently}</p>
+      <div className="sound-note"><AudioLines size={15}/><span>Sound is optional.</span></div>
     </div>
-    <div className={`car-stage ${revving ? 'revving' : ''}`}>
-      <div className="garage-wall" aria-hidden="true"><span>THE GARAGE</span><div className="wall-line"/><span className="bay-number">01</span></div>
-      <div className="ceiling-light light-one"/><div className="ceiling-light light-two"/>
-      <div className="garage-floor"/><div className="floor-ring"/>
-      <SceneBoundary><Suspense fallback={null}><Scene onReady={() => setLoaded(true)} onError={() => { setFailed(true); setLoaded(true); }}/></Suspense></SceneBoundary>
-      {!loaded && <div className="model-loading"><span className="loading-spinner"/><span>ROLLING INTO THE GARAGE</span></div>}
-      {failed && <div className="scene-fallback"><img src="/images/r8-reference.png" alt="Navy Audi R8 reference"/><p>Explore the garage below, or start your ride.</p></div>}
-      <div className="car-view-label"><span className="view-dot"/> {revving ? 'V10 · 8,000 RPM' : 'NAVY BLUE · V10 PLUS'}</div>
-      <div className="drag-hint"><Hand size={13}/><span>DRAG TO EXPLORE</span><span>↔</span></div>
-      <div className="car-spec"><span className="r8-emblem"><i/>R8</span><div><strong>AUDI R8</strong><span>AUDI R8 · 5.2L V10 · 602 HP · QUATTRO</span></div><span className="car-spec-number">001 / 001</span></div>
+    <div className={`car-stage ${visual.ready?'scene-ready':''} ${revving?'revving':''}`} data-render-mode={visual.ready?'interactive':'static'}>
+      <div className="garage-wall" aria-hidden="true"><span>CAR-XY</span><div className="wall-line"/><span className="bay-number">01</span></div>
+      <img className="car-poster" src="/images/car-poster.svg" width="1000" height="600" fetchPriority="high" alt="Navy Car-XY sports car, viewed from the front and side"/>
+      {visual.mount&&<SceneBoundary onError={visual.onError}><Suspense fallback={null}><Scene onReady={visual.onReady} onError={visual.onError}/></Suspense></SceneBoundary>}
+      <div className="car-view-label"><span className="view-dot"/> NAVY BLUE · CAR-XY</div>
+      <div className="car-visual-controls">{visual.ready&&<span><Hand size={13}/> DRAG TO ROTATE</span>}<button onClick={visual.toggle} aria-pressed={visual.staticOnly}>{visual.staticOnly||visual.failed?'LOAD 3D VIEW':'USE STATIC VIEW'}</button></div>
+      <div className="car-spec"><div><strong>CAR-XY</strong><span>CAR-XY · 5.2L V10 · 602 HP</span></div></div>
     </div>
-    <div className="hero-bottom"><div className="location"><MapPin size={14}/><span>TORONTO, ON</span><span className="tiny-dot"/><span>43.6532° N, 79.3832° W</span></div><div className="garage-controls"><button className={revving ? 'active' : ''} onClick={onRev}><Gauge size={16}/>{revving ? 'REVVING…' : 'REV ENGINE'}<kbd>R</kbd></button><button onClick={onHorn} className={honking?'active':''}><Megaphone size={16}/>{honking?'HONKING…':'HORN'}<kbd>H</kbd></button></div></div>
+    <div className="hero-bottom"><div className="location"><MapPin size={14}/><span>Toronto, ON</span></div><div className="garage-controls"><button className={revving?'active':''} onClick={onRev}><Gauge size={16}/>{revving?'REVVING…':'REV ENGINE'}<kbd>R</kbd></button><button onClick={onHorn} className={honking?'active':''}><Megaphone size={16}/>{honking?'HONKING…':'HORN'}<kbd>H</kbd></button></div></div>
   </section>;
 }
 
 function RouteMap({ onSelect, onStart }) {
-  return <section className="route-map" id="route"><div className="route-heading"><div className="route-heading-left"><OntarioShield small/><div><div className="eyebrow">YOUR ROUTE, YOUR PACE</div><h2>A few exits worth taking.</h2></div></div><button className="text-link" onClick={onStart}>Take the scenic route <ArrowUpRight size={17}/></button></div><div className="route-exits">{EXITS.map(exit => <a key={exit.id} href={`#${exit.id}`} onClick={() => onSelect(exit.id)} className="route-exit"><span className="exit-top"><span>EXIT {exit.number}</span><ArrowUpRight size={17}/></span><h3>{exit.title}</h3><span className="exit-description">{exit.subtitle}</span></a>)}</div><div className="route-footer"><span><span className="status-dot"/> ALL ROADS LEAD TO SOMETHING INTERESTING.</span><span>SCROLL TO EXPLORE <ArrowDown size={13}/></span></div></section>;
+  return <section className="route-map" id="route"><div className="route-heading"><div className="route-heading-left"><OntarioShield small/><div><div className="eyebrow">YOUR ROUTE, YOUR PACE</div><h2>Portfolio sections</h2></div></div><button className="text-link" onClick={onStart}>Take the scenic route <ArrowUpRight size={17}/></button></div><div className="route-exits">{EXITS.map(exit => <a key={exit.id} href={`#${exit.id}`} onClick={() => onSelect(exit.id)} className="route-exit"><span className="exit-top"><span>EXIT {exit.number}</span><ArrowUpRight size={17}/></span><h3>{exit.title}</h3><span className="exit-description">{exit.subtitle}</span></a>)}</div><div className="route-footer"><span><span className="status-dot"/> SELECT A SECTION TO READ</span><span>SCROLL TO EXPLORE <ArrowDown size={13}/></span></div></section>;
 }
 
 function ProjectArt({ kind }) {
-  const thumbnail = {
-    anchor: { src:'/images/projects/anchor.png', alt:'Anchor app home screen with habit tracking, daily reflection, and goal timeline' },
-    kera: { src:'/images/projects/kera.png', alt:'Kera Devpost thumbnail: Health at your fingertips, showing a photo-based hemoglobin estimate' },
-    clearpath: { src:'/images/projects/clearpath.png', alt:'ClearPath room planner showing furniture, clearance checks, and a route through a 3D room' },
+  const [loaded,setLoaded]=useState(false),[failed,setFailed]=useState(false);
+  const thumbnail={
+    anchor:{src:'/images/projects/anchor.webp',alt:'Anchor app: habit tracking, reflections and a goal timeline',width:2288,height:1448},
+    kera:{src:'/images/projects/kera.webp',alt:'Kera: Health at your fingertips, a photo-based hemoglobin research project',width:1536,height:1024},
+    clearpath:{src:'/images/projects/clearpath.webp',alt:'ClearPath 3D room planner with furniture and clearance checks',width:2858,height:1466},
   }[kind];
-  if (thumbnail) return <div className={`project-art supplied-art ${kind}-thumbnail`}><img src={thumbnail.src} alt={thumbnail.alt} loading="lazy" decoding="async"/></div>;
-  return <RacingArt/>;
+  if(!thumbnail)return <RacingArt/>;
+  return <div className={`project-art supplied-art ${kind}-thumbnail ${loaded?'image-ready':''}`}>
+    {!loaded&&<span className="thumbnail-placeholder">{failed?'Preview unavailable':projects.find(p=>p.visual===kind)?.title}</span>}
+    {!failed&&<img src={thumbnail.src} width={thumbnail.width} height={thumbnail.height} alt={thumbnail.alt} loading="lazy" decoding="async" onLoad={event=>{const image=event.currentTarget;image.decode().catch(()=>{}).then(()=>setLoaded(true));}} onError={()=>setFailed(true)}/>}
+  </div>;
 }
 
 function RacingArt() {
@@ -102,7 +105,7 @@ function RacingArt() {
     <path ref={path} className="racing-line" d={route}/>
     {markers.map((cone,i)=><g key={i} transform={`translate(${cone.x} ${cone.y})`}><ellipse cy="3" rx="4" ry="1.8" fill="#0c1525" opacity=".5"/><path d="M0-5-3.5 3h7Z" fill={cone.side<0?'#e9ad59':'#a7cee8'}/><path d="M-1.7-.5h3.4" stroke="#f9f1db" strokeWidth="1"/></g>)}
     {pose && <g transform={`translate(${pose.x} ${pose.y}) rotate(${pose.angle})`}><rect x="-7" y="-14" width="14" height="28" rx="5" fill="#9abcec" stroke="#d4e3f7" strokeWidth=".7"/><path d="M-5-7H5L4-1H-4Z" fill="#193149"/><rect x="-10" y="-11" width="20" height="3" fill="#121d2a"/><rect x="-10" y="8" width="20" height="3" fill="#121d2a"/><path d="M-5-12h3m4 0h3" stroke="#f2f8ff" strokeWidth="1.5"/></g>}
-  </svg><span className="telemetry-label">PATH OPTIMIZED <span className="status-dot"/></span><span className="art-corner">04—C++</span></div>;
+  </svg><span className="art-corner">04—C++</span></div>;
 }
 
 function SectionHeading({ number, label, title, text, link }) {
@@ -110,32 +113,42 @@ function SectionHeading({ number, label, title, text, link }) {
 }
 
 function Projects({ compact = false }) {
-  return <section className={`content-section projects-section ${compact ? 'compact' : ''}`} id={compact ? undefined : 'projects'}>
-    <SectionHeading number="01" label="THE BUILDS" title={<>Ideas in the<br className="desktop-break"/> fast lane.</>} text="A little machine learning. A little spatial thinking. A lot of figuring things out." link={<a className="text-link" href={links.github} target="_blank" rel="noreferrer">More on GitHub <ArrowUpRight size={16}/></a>}/>
-    <div className="projects-grid">{projects.map((project, i)=><article className="project-card" key={project.title}><ProjectArt kind={project.visual}/><div className="project-card-body"><div className="project-category">{project.kind}<span>{project.year}</span></div><div className="project-title-row"><h3>{project.title}</h3><a href={project.href} target="_blank" rel="noreferrer" className="project-arrow" aria-label={project.cta}><ArrowUpRight size={23}/></a></div><p>{project.description}</p><details><summary>Under the hood <span>+</span></summary><p>{project.detail}</p></details><div className="project-tags">{project.tags.map(tag=><span key={tag}>{tag}</span>)}</div></div></article>)}</div>
+  return <section className={`content-section projects-section ${compact?'compact':''}`} id={compact?undefined:'projects'}>
+    <SectionHeading number="01" label="SELECTED WORK" title="Projects"/>
+    <div className="projects-grid">{projects.map(project=><article className="project-card" key={project.title}>
+      <ProjectArt kind={project.visual}/><div className="project-card-body">
+        <div className="project-category">{project.kind}<span>{project.year}</span></div>
+        <div className="project-title-row"><h3>{project.title}</h3><span className={`project-status status-${project.status.toLowerCase().replaceAll(' ','-')}`}>{project.status}</span></div>
+        <p>{project.description}</p>
+        <ul className="project-contributions">{project.contributions.map(point=><li key={point}>{point}</li>)}</ul>
+        <p className="project-outcome">{project.outcome}</p><p className="project-note">{project.note}</p>
+        <details><summary>Technical details <span>+</span></summary><p>{project.detail}</p></details>
+        <div className="project-tags">{project.tags.map(tag=><span key={tag}>{tag}</span>)}</div>
+        <div className="project-links">{project.links.map(link=><a key={link.href} href={link.href} target="_blank" rel="noreferrer">{link.label}<ArrowUpRight size={15}/></a>)}{project.privateSource&&<span className="private-source">Code private</span>}</div>
+      </div></article>)}</div>
   </section>;
 }
 
 function Teams({ compact = false }) {
-  return <section className="content-section teams-section" id={compact ? undefined : 'teams'}><SectionHeading number="02" label="THE DESIGN TEAMS" title="Built for the real world." text="The best part of writing code? Watching it move something."/><div className="teams-grid"><article className="team-card formula"><div className="team-art" aria-hidden="true"><span className="team-giant">F<span>SAE</span></span><div className="team-track"/><span className="team-art-meta">U OF T · FORMULA RACING</span></div><div className="team-content"><span className="project-category">FORMULA SAE · DRIVERLESS</span><h3>U of T Formula Racing</h3><p>Turning a track full of cones into a racing line. I develop C++ pathfinding algorithms that optimize path length and straightness for the team’s driverless car.</p><div className="team-role"><span className="status-dot"/> PATHFINDING & PERCEPTION SOFTWARE</div><a href="https://fsaeutoronto.ca" target="_blank" rel="noreferrer" className="text-link">Meet the team <ArrowUpRight size={16}/></a></div></article><article className="team-card solar"><div className="team-art" aria-hidden="true"><div className="solar-sun"/><div className="solar-panel"/><span className="solar-word">BLUE SKY</span><span className="team-art-meta">U OF T · SOLAR RACING</span></div><div className="team-content"><span className="project-category">SOLAR VEHICLES · RACE STRATEGY</span><h3>Blue Sky Solar Racing</h3><p>A different kind of horsepower. I simulate energy use to find efficient racing speeds, using local caching to make the search faster. Every watt has a job to do.</p><div className="team-role"><span className="status-dot"/> ENERGY SIMULATION & RACE STRATEGY</div><a href="https://www.blueskysolar.org/" target="_blank" rel="noreferrer" className="text-link">Meet the team <ArrowUpRight size={16}/></a></div></article></div></section>;
+  return <section className="content-section teams-section" id={compact ? undefined : 'teams'}><SectionHeading number="02" label="THE DESIGN TEAMS" title="Design Teams"/><div className="teams-grid"><article className="team-card formula"><div className="team-art" aria-hidden="true"><span className="team-giant">F<span>SAE</span></span><div className="team-track"/><span className="team-art-meta">U OF T · FORMULA RACING</span></div><div className="team-content"><span className="project-category">FORMULA SAE · DRIVERLESS</span><h3>U of T Formula Racing</h3><p>I develop C++ pathfinding algorithms that convert cone maps into racing lines, optimizing path length and straightness for the team’s driverless car.</p><div className="team-role"><span className="status-dot"/> PATHFINDING & PERCEPTION SOFTWARE</div><a href="https://fsaeutoronto.ca" target="_blank" rel="noreferrer" className="text-link">Meet the team <ArrowUpRight size={16}/></a></div></article><article className="team-card solar"><div className="team-art" aria-hidden="true"><div className="solar-sun"/><div className="solar-panel"/><span className="solar-word">BLUE SKY</span><span className="team-art-meta">U OF T · SOLAR RACING</span></div><div className="team-content"><span className="project-category">SOLAR VEHICLES · RACE STRATEGY</span><h3>Blue Sky Solar Racing</h3><p>I build energy-use simulations to find efficient racing speeds, and implement local caching to avoid repeating simulation work during the strategy search.</p><div className="team-role"><span className="status-dot"/> ENERGY SIMULATION & RACE STRATEGY</div><a href="https://www.blueskysolar.org/" target="_blank" rel="noreferrer" className="text-link">Meet the team <ArrowUpRight size={16}/></a></div></article></div></section>;
 }
 
 function Journey({ compact = false }) {
-  return <section className="content-section journey-section" id={compact ? undefined : 'journey'}><SectionHeading number="03" label="THE ROAD SO FAR" title="A few miles of backstory." text="Curiosity tends to take me places. Here are a few of them."/><div className="journey-layout"><div className="journey-intro"><span className="outline-monogram">CL.</span><h3>Engineer. Builder.<br/>Perpetual question-asker.</h3><p>I’m a first-year Engineering Science student at the University of Toronto’s St. George campus. I like the places where software meets something tangible: a room, a race car, a person’s day.</p><a href="/Cary-Li-Resume.pdf" target="_blank" rel="noreferrer" className="text-link">The full story <Download size={16}/></a></div><div className="timeline"><article><span className="timeline-date">SEP 2026 — PRESENT</span><h3>University of Toronto</h3><span className="timeline-subtitle">B.A.Sc. · Engineering Science</span><p>Learning the fundamentals. Building with Formula Racing and Blue Sky Solar Racing. Following the questions wherever they lead.</p></article><article><span className="timeline-date">MAR 2025 — PRESENT</span><h3>The Fundamental Why</h3><span className="timeline-subtitle">Founder · Physics & philosophy podcast</span><p>Conversations with STEM researchers, physics students, and curious minds about how the world works, and why.</p><div className="podcast-stats"><span><strong>7</strong>EPISODES</span><span><strong>2.1k+</strong>SUBSCRIBERS</span><span><strong>14.1k+</strong>VIEWS</span></div></article><article><span className="timeline-date">SEP 2024 — JUN 2026</span><h3>Champion Swim School</h3><span className="timeline-subtitle">Competitive Swim Instructor</span><p>Teaching all four strokes to swimmers aged 6–16. Named Instructor of the Month twice, among a team of 30.</p></article><article><span className="timeline-date">2022 — 2026</span><h3>Dr. G.W. Williams Secondary School</h3><span className="timeline-subtitle">IB Diploma · 41/45</span><p>UofT National Book Award, Pay It Forward Scholarship, and DECA ICDC qualifier.</p></article></div></div></section>;
+  return <section className="content-section journey-section" id={compact ? undefined : 'journey'}><SectionHeading number="03" label="THE ROAD SO FAR" title="About"/><div className="journey-layout"><div className="journey-intro"><span className="outline-monogram">CL.</span><h3>Cary Li</h3><p>I’m a first-year Engineering Science student at the University of Toronto’s St. George campus. I like the places where software meets something tangible: a room, a race car, a person’s day.</p><a href="/Cary-Li-Resume.pdf" target="_blank" rel="noreferrer" className="text-link">Résumé <Download size={16}/></a></div><div className="timeline"><article><span className="timeline-date">SEP 2026 — PRESENT</span><h3>University of Toronto</h3><span className="timeline-subtitle">B.A.Sc. · Engineering Science</span><p>First-year Engineering Science student. Software work with U of T Formula Racing and Blue Sky Solar Racing.</p></article><article><span className="timeline-date">MAR 2025 — PRESENT</span><h3>The Fundamental Why</h3><span className="timeline-subtitle">Founder · Physics & philosophy podcast</span><p>Conversations with STEM researchers, physics students, and curious minds about how the world works, and why.</p><div className="podcast-stats"><span><strong>7</strong>EPISODES</span><span><strong>2.1k+</strong>SUBSCRIBERS</span><span><strong>14.1k+</strong>VIEWS</span></div></article><article><span className="timeline-date">SEP 2024 — JUN 2026</span><h3>Champion Swim School</h3><span className="timeline-subtitle">Competitive Swim Instructor</span><p>Teaching all four strokes to swimmers aged 6–16. Named Instructor of the Month twice, among a team of 30.</p></article><article><span className="timeline-date">2022 — 2026</span><h3>Dr. G.W. Williams Secondary School</h3><span className="timeline-subtitle">IB Diploma · 41/45</span><p>UofT National Book Award, Pay It Forward Scholarship, and DECA ICDC qualifier.</p></article></div></div></section>;
 }
 
 function Skills({ compact = false }) {
-  return <section className="content-section skills-section" id={compact ? undefined : 'skills'}><SectionHeading number="04" label="UNDER THE HOOD" title="The toolkit. Always growing." text="Different problems need different tools. Here’s what’s in the garage."/><div className="skills-grid">{skills.map(skill=><article key={skill.name} className="skill-column"><div className="skill-top"><span>{skill.number}</span><Gauge size={22}/></div><h3>{skill.name}</h3><span className="skill-subtitle">{skill.subtitle}</span><ul>{skill.items.map(item=><li key={item}>{item}<span>↗</span></li>)}</ul></article>)}</div></section>;
+  return <section className="content-section skills-section" id={compact ? undefined : 'skills'}><SectionHeading number="04" label="UNDER THE HOOD" title="Skills"/><div className="skills-grid">{skills.map(skill=><article key={skill.name} className="skill-column"><div className="skill-top"><span>{skill.number}</span><Gauge size={22}/></div><h3>{skill.name}</h3><ul>{skill.items.map(item=><li key={item}>{item}</li>)}</ul></article>)}</div></section>;
 }
 
 function Contact({ compact = false }) {
   const [copied, setCopied] = useState(false);
   async function copy() { try { await navigator.clipboard.writeText(links.email); setCopied(true); setTimeout(()=>setCopied(false), 2200); } catch { window.location.href = `mailto:${links.email}`; } }
-  return <section className={`contact-section ${compact ? 'compact' : ''}`} id={compact ? undefined : 'contact'}><div className="contact-top"><div className="eyebrow"><span className="status-dot"/> EXIT 05 · THE NEXT ADVENTURE</div><span>TORONTO, ON ↗ EVERYWHERE</span></div><h2>GOT SOMETHING<br/>WORTH <span>BUILDING?</span></h2><div className="contact-bottom"><div><p>Projects, opportunities, or a good conversation.<br/>I’m always up for a new road.</p><a className="email-link" href={`mailto:${links.email}`}>{links.email}<ArrowUpRight size={21}/></a><button className="copy-email" onClick={copy}>{copied ? <><Check size={13}/> Copied to clipboard</> : 'Copy email address'}</button></div><div className="social-links"><a href={links.github} target="_blank" rel="noreferrer"><Github size={18}/> GitHub <ArrowUpRight size={15}/></a><a href={links.linkedin} target="_blank" rel="noreferrer"><Linkedin size={18}/> LinkedIn <ArrowUpRight size={15}/></a><a href={links.devpost} target="_blank" rel="noreferrer"><ExternalLink size={18}/> Devpost <ArrowUpRight size={15}/></a></div></div></section>;
+  return <section className={`contact-section ${compact ? 'compact' : ''}`} id={compact ? undefined : 'contact'}><div className="contact-top"><div className="eyebrow"><span className="status-dot"/> CONTACT</div><span>Toronto, ON</span></div><h2>Get in touch</h2><div className="contact-bottom"><div><p className="availability-line">{availability}</p><a className="email-link" href={`mailto:${links.email}`}>{links.email}<ArrowUpRight size={21}/></a><button className="copy-email" onClick={copy}>{copied ? <><Check size={13}/> Copied to clipboard</> : 'Copy email address'}</button></div><div className="social-links"><a href={links.github} target="_blank" rel="noreferrer"><Github size={18}/> GitHub <ArrowUpRight size={15}/></a><a href={links.linkedin} target="_blank" rel="noreferrer"><Linkedin size={18}/> LinkedIn <ArrowUpRight size={15}/></a><a href={links.devpost} target="_blank" rel="noreferrer"><ExternalLink size={18}/> Devpost <ArrowUpRight size={15}/></a></div></div></section>;
 }
 
 function Footer({ onStart }) {
-  return <footer className="footer"><div><span className="footer-brand">CAR—XY</span><span>© {new Date().getFullYear()} Cary Li</span></div><span className="footer-message">BUILT WITH CURIOSITY. FUELLED BY QUESTIONS.</span><button onClick={onStart}>ONE MORE RIDE? <ArrowUpRight size={15}/></button></footer>;
+  return <footer className="footer"><div><span className="footer-brand">CAR—XY</span><span>{`© ${new Date().getFullYear()} Cary Li`}</span></div><button onClick={onStart}>TEST DRIVE <ArrowUpRight size={15}/></button></footer>;
 }
 
 const sectionComponents = { projects: Projects, teams: Teams, journey: Journey, skills: Skills, contact: Contact };
@@ -169,11 +182,11 @@ function Drive({ speed, ready, activeExit, navigatingExit, maneuver, maneuverPro
     <aside className={`map-directory ${ready ? 'directory-visible' : ''}`} aria-hidden={!ready} inert={!ready}>
       <div className="map-sign-heading"><OntarioShield small/><div><span>EASTBOUND</span><h2>Choose your exit.</h2></div><ArrowUpRight size={26}/></div>
       <nav aria-label="Highway exits">{EXITS.map(exit=><button key={exit.id} className="map-exit-sign" onClick={()=>onSelect(exit)}><span className="map-exit-number">{exit.number}</span><span><strong>{exit.title}</strong><small>{exit.subtitle}</small></span><ArrowUpRight size={20}/></button>)}</nav>
-      <div className="map-directory-note">FIVE DESTINATIONS. ONE SCENIC OFF-RAMP.</div>
+      <div className="map-directory-note">SELECT A SECTION TO VIEW</div>
     </aside>
     {!ready && !activeExit && <div className="map-drive-message"><span className="eyebrow">{maneuver === 'returning' ? 'JOINING THE ON-RAMP' : movingToExit ? 'FOLLOWING THE OFF-RAMP' : 'THE OPEN ROAD IS CALLING'}</span><h2>{maneuver === 'exiting' ? `Next stop: ${navigatingExit.title}.` : maneuver === 'returning' ? 'Back to the open road.' : speed < 40 ? 'Here we go.' : 'Finding your next adventure.'}</h2><p>{movingToExit ? 'Car-XY is taking the scenic route.' : 'Your exit signs will appear at cruising speed.'}</p></div>}
     <div className="map-compass" aria-hidden="true"><Navigation size={20}/><span>E</span></div>
-    <div className="map-telemetry" aria-label={`Speed ${speed} kilometres per hour, gear ${gearAt(speed)}`}><div className="map-telemetry-top"><span>AUDI R8 · CAR-XY</span><span className="status-dot"/></div><div className="map-speed"><span>{activeExit ? 'P' : gearAt(speed)}</span><strong>{speed.toString().padStart(3,'0')}</strong><small>KM/H</small></div><div className="map-rpm"><span style={{width:`${rpmAt(speed,rev?revEnvelope(revProgress):0)/8500*100}%`}}/></div><div className="map-drive-state">{activeExit ? 'PARKED · ENJOY THE STOP' : maneuver === 'exiting' ? 'INDICATOR ON · TAKING EXIT' : maneuver === 'returning' ? 'MERGING ONTO HIGHWAY 401' : ready ? 'CRUISING · PICK A DESTINATION' : 'ACCELERATING'}</div></div>
+    <div className="map-telemetry" aria-label={`Speed ${speed} kilometres per hour, gear ${gearAt(speed)}`}><div className="map-telemetry-top"><span>CAR-XY</span><span className="status-dot"/></div><div className="map-speed"><span>{activeExit ? 'P' : gearAt(speed)}</span><strong>{speed.toString().padStart(3,'0')}</strong><small>KM/H</small></div><div className="map-rpm"><span style={{width:`${rpmAt(speed,rev?revEnvelope(revProgress):0)/8500*100}%`}}/></div><div className="map-drive-state">{activeExit ? 'PARKED · ENJOY THE STOP' : maneuver === 'exiting' ? 'INDICATOR ON · TAKING EXIT' : maneuver === 'returning' ? 'MERGING ONTO HIGHWAY 401' : ready ? 'CRUISING · PICK A DESTINATION' : 'ACCELERATING'}</div></div>
     <div className="drive-controls" id="drive-controls"><button onClick={onRev} className={rev ? 'active' : ''}><Gauge size={17}/><span>{rev ? 'REVVING…' : 'REV ENGINE'}</span><kbd>R</kbd></button><button onClick={onHorn} className={honking?'active':''}><Megaphone size={17}/><span>{honking?'HONKING…':'HORN'}</span><kbd>H</kbd></button><div className="drive-controls-divider"/><button className="control-icon" onClick={onMute} aria-label={muted ? 'Unmute sound' : 'Mute sound'}>{muted ? <VolumeX size={18}/> : <Volume2 size={18}/>}</button><button className="control-icon" onClick={()=>setHelp(!help)} aria-label="Show driving help" aria-expanded={help}><CircleHelp size={18}/></button></div>
     {help && <div className="drive-help"><button className="icon-button" onClick={()=>setHelp(false)} aria-label="Close help"><X size={16}/></button><h3>A little road trip.</h3><p>Choose a green sign. Car-XY will take the off-ramp and park at your destination. “Back on the road” merges you onto the highway again.</p><p><kbd>R</kbd> Recorded rev <kbd>H</kbd> Horn <kbd>M</kbd> Sound</p><small>Return to the garage anytime for the full portfolio.</small></div>}
     {activeExit && <StopDialog key={activeExit.id} exit={activeExit} onBack={onBack} onGarage={onGarage}/>}
@@ -317,7 +330,7 @@ export default function App() {
   const landing = mode === 'landing';
   const rideSpeed = mode==='drive'&&maneuver==='cruising'&&ready ? revSpeedAt(speed,revProgress) : speed;
   return <>
-    <a href={mode==='drive'?'#drive-controls':landing?'#mode-choice':'#garage-directory'} className="skip-navigation">Skip to {mode==='drive'?'ride controls':landing?'mode choice':'garage directory'}</a>
+    <a href={mode==='drive'?'#drive-controls':landing?'#mode-choice':'#garage-directory'} className="skip-navigation">{`Skip to ${mode==='drive'?'ride controls':landing?'mode choice':'garage directory'}`}</a>
     {mode === 'drive' ? <Drive speed={rideSpeed} ready={ready} activeExit={activeExit} navigatingExit={navigatingExit} maneuver={maneuver} maneuverProgress={maneuverProgress} onSelect={chooseExit} onBack={back} onGarage={garage} onRev={revEngine} onHorn={horn} honking={honking} rev={rev} revProgress={revProgress} muted={muted} onMute={mute}/> : mode === 'garage' ? <>
       <GarageHub brand={<Brand onClick={home}/>} onStart={start} onSection={openGarageSection} onReadAll={showPortfolio} muted={muted} onMute={mute} onRev={revEngine} onHorn={horn} honking={honking} revving={!!rev} locked={!!transition||!!garageSection}/>
       {readAll&&<><div className="garage-portfolio-header" id="garage-portfolio" tabIndex="-1"><h2>The complete portfolio.</h2><button onClick={closePortfolio}><RotateCcw size={15}/> Back to the garage</button></div><RouteMap onStart={start} onSelect={()=>{}}/><Projects/><Teams/><Journey/><Skills/><Contact/><Footer onStart={start}/></>}

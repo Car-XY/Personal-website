@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { addCarDetails, disposeSceneResources } from '../src/car-details.js';
 
-test('the R8 has a closed floor and front and rear Car-XY plates', () => {
+test('the Car-XY coupe has a closed floor and front and rear Car-XY plates', () => {
   const text = [];
   globalThis.document = { createElement: () => ({ getContext: () => ({ fillRect(){}, strokeRect(){}, fillText: value => text.push(value) }) }) };
   const car = new THREE.Group();
