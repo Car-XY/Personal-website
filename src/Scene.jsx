@@ -22,6 +22,8 @@ export default function Scene({ onReady, onError }) {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
+    const contextLost = event => { event.preventDefault(); callbacks.current.onError?.(); };
+    renderer.domElement.addEventListener('webglcontextlost', contextLost);
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 600);
     let controls, car, disposed = false, frame, announced=false;
@@ -106,6 +108,7 @@ export default function Scene({ onReady, onError }) {
     render();
     return () => {
       disposed = true; cancelAnimationFrame(frame); observer.disconnect(); controls?.dispose();
+      renderer.domElement.removeEventListener('webglcontextlost', contextLost);
       document.removeEventListener('visibilitychange', visibility);
       draco.dispose(); disposeSceneResources(scene,originalTextures);
       envTexture.dispose(); pmrem.dispose(); renderer.dispose(); renderer.domElement.remove();
