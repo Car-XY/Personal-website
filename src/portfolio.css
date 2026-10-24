@@ -1,3 +1,4 @@
+body {min-width:0}
 .brand-symbol {padding-right:0;transform:none}
 .landing-page .garage-hero {display:grid;grid-template-columns:1fr 1.2fr;gap:32px;align-items:center;min-height:calc(100svh - 100px);padding:44px var(--gutter) 0}
 .landing-page .hero-copy {width:100%;padding-top:0}
