@@ -32,6 +32,8 @@ body {min-width:0}
 .scene-ready .garage-room-backup {opacity:0;pointer-events:none}
 .garage-room-backup img {position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:0;clip-path:none}
 .garage-room-caption>button {pointer-events:auto;border:1px solid #c1d4e744;background:#101e31d9;padding:9px 12px;font:7px var(--mono);letter-spacing:.6px}
+.garage-room-caption {justify-content:flex-end}
+.topdown-screen .drive-location {display:block;color:#afc2d8}
 .garage-open>.status-dot {margin-left:0}
 .garage-car-spec {font:9px var(--mono);letter-spacing:1px;color:#bdccdf}
 .garage-car-spec small {display:block;margin-top:7px;color:#8ba3bb;font-size:7px}
@@ -73,6 +75,7 @@ body {min-width:0}
   .hero-copy .currently-note {font-size:11px}
 }
 @media(max-width:760px) {
+  .topdown-screen .drive-location {position:absolute;left:20px;top:70px;font-size:6px;letter-spacing:.7px}
   .landing-page .garage-hero {grid-template-columns:1fr;min-height:0;padding-top:32px;gap:26px}
   .hero-copy h1 {font-size:80px;margin-top:18px}
   .hero-intro {max-width:590px;font-size:15px}

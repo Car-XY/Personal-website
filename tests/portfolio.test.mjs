@@ -36,7 +36,7 @@ test('the first HTML response has readable content and a small preloaded static 
   const html=readFileSync('index.html','utf8');
   assert.match(html,/Hey, I’m Cary\./);assert.match(html,/First-year Engineering Science/);
   assert.match(html,/rel="preload" as="image" href="\/images\/car-poster.svg"/);
-  for(const file of ['car-poster.svg','garage-poster.svg']){
+  for(const file of ['car-poster.svg','garage-poster.svg','garage-poster-mobile.svg']){
     const image=readFileSync('public/images/'+file,'utf8');assert.match(image,/<svg/);
     assert.doesNotMatch(image,/Audi|\bR8\b/i);assert.ok(image.length<25000);
   }

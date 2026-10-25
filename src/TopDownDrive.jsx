@@ -33,7 +33,8 @@ function Ramp({ ramp, name }) {
   return <g className="map-ramp" data-ramp={name}>
     <path d={path} stroke="#718174" strokeWidth="96" fill="none"/>
     <path d={path} stroke="#eff0df" strokeWidth="84" fill="none"/>
-    <path d={path} stroke="url(#asphalt-grain)" strokeWidth="80" fill="none"/>
+    {/* Pattern-painted strokes can disappear on mobile SVG renderers. The road surface must be solid. */}
+    <path d={path} stroke="#48515b" strokeWidth="80" fill="none"/>
   </g>;
 }
 
@@ -76,7 +77,7 @@ export default function TopDownDrive({ speed, branchVisible, maneuver, maneuverP
         <pattern id="land-grid" ref={grid} width="60" height="60" patternUnits="userSpaceOnUse"><path d="M60 0H0V60" fill="none" stroke="#c4d8cd" strokeWidth=".6" opacity=".04"/></pattern>
         <g id="map-tree"><path d="M5-23 23-1H16L30 22H8V36H1V22H-23L-9-1H-16Z" fill="#122b24" opacity=".3" transform="translate(5 6)"/><rect x="-3" y="15" width="6" height="20" rx="1" fill="#73634b"/><path d="M0-31 17-8H9L24 12H13L29 29H-29L-13 12H-24L-9-8H-17Z" fill="#264b3e"/><path d="M0-31V29H-29L-13 12H-24L-9-8H-17Z" fill="#42634c"/><path d="M0-27 12-10H2M0-7 17 10H3M0 13 21 26H4" fill="none" stroke="#72906a" strokeWidth="1.5" opacity=".45"/></g>
         <pattern id="map-verge" ref={trees} width="220" height="250" patternUnits="userSpaceOnUse"><use href="#map-tree" transform="translate(39 44) scale(.95)"/><use href="#map-tree" transform="translate(156 127) scale(1.12)"/><use href="#map-tree" transform="translate(66 213) scale(.78)"/></pattern>
-        <pattern id="asphalt-grain" ref={asphalt} width="15" height="15" patternUnits="userSpaceOnUse"><rect width="15" height="15" fill="#48515b"/><circle cx="3" cy="4" r=".7" fill="#5d6873" opacity=".5"/><circle cx="11" cy="10" r=".6" fill="#26333c" opacity=".5"/></pattern>
+        <pattern id="asphalt-grain" ref={asphalt} width="15" height="15" patternUnits="userSpaceOnUse"><circle cx="3" cy="4" r=".7" fill="#5d6873" opacity=".5"/><circle cx="11" cy="10" r=".6" fill="#26333c" opacity=".5"/></pattern>
         <pattern id="map-lane-lines" ref={lanes} width="100" height="84" patternUnits="userSpaceOnUse"><rect x="48.5" width="3" height="30" fill="#f0eee2"/></pattern>
       </defs>
       <rect x="-2000" y="-2000" width="5000" height="5000" fill="#283c37"/>
@@ -85,6 +86,7 @@ export default function TopDownDrive({ speed, branchVisible, maneuver, maneuverP
       {exitVisible && <Ramp ramp={OFF_RAMP} name="off-ramp"/>}
       {entering && <Ramp ramp={ON_RAMP} name="on-ramp"/>}
       <rect x="342" y="-2000" width="8" height="4400" fill="#718174"/>
+      <rect x="350" y="-2000" width="300" height="4400" fill="#48515b"/>
       <rect x="350" y="-2000" width="300" height="4400" fill="url(#asphalt-grain)"/>
       <path d={highwayEdgePath(activeRamp,654,96)} stroke="#718174" strokeWidth="8" fill="none"/>
       <path d="M358-2000V2400" stroke="#e1c680" strokeWidth="2.5"/>

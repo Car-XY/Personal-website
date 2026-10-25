@@ -17,8 +17,8 @@ class SceneBoundary extends Component {
   render() { return this.state.failed ? null : this.props.children; }
 }
 
-function Brand({ onClick }) {
-  return <button className="brand" onClick={onClick} aria-label="Cary Li home"><span className="brand-symbol">c</span><span>CAR<span className="brand-dash">—</span>XY<small>CARY LI’S PERSONAL GARAGE</small></span></button>;
+function Brand({ onClick, compact = false }) {
+  return <button className="brand" onClick={onClick} aria-label="Cary Li home"><span className="brand-symbol">c</span><span>CAR<span className="brand-dash">—</span>XY{!compact&&<small>CARY LI’S PERSONAL GARAGE</small>}</span></button>;
 }
 
 function OntarioShield({ small = false }) {
@@ -34,7 +34,6 @@ function Header({ onStart, muted, onMute, garage, landing = false }) {
       <a href="#route" onClick={() => setMenu(false)}>The Route <span>02</span></a>
       <a href="#contact" onClick={() => setMenu(false)}>Let’s Talk <ArrowUpRight size={14} /></a>
     </nav>}
-    {landing && <div className="landing-header-note"><span className="status-dot"/> CARY LI · ENGINEERING SCIENCE</div>}
     <div className="header-actions"><a href="/Cary-Li-Resume.pdf" className="resume-link" target="_blank" rel="noreferrer">Résumé <ArrowUpRight size={15}/></a><span className="header-divider"/><button className="icon-button sound-toggle" onClick={onMute} aria-label={muted ? 'Unmute sound' : 'Mute sound'} aria-pressed={!muted}>{muted ? <VolumeX size={18}/> : <Volume2 size={18}/>}</button><button className="mobile-menu icon-button" aria-label={menu ? 'Close navigation' : 'Open navigation'} onClick={() => setMenu(!menu)}>{menu ? <X/> : <Menu/>}</button></div>
   </header>;
 }
@@ -44,7 +43,6 @@ function GarageHero({ onStart, onGarage, onRev, onHorn, revving, honking, landin
   return <section className="garage-hero" id="home" aria-labelledby="hero-title">
     <div className="hero-grid" aria-hidden="true"/>
     <div className="hero-copy">
-      <div className="eyebrow"><span className="status-dot"/> UNIVERSITY OF TORONTO</div>
       <h1 id="hero-title">Hey, I’m<br/><span>Cary.</span></h1>
       <p className="hero-intro">First-year Engineering Science at U of T. I build ML models, 3D web apps, and race-car algorithms.</p>
       <p className="hero-description">Hop in — I’ll show you around.</p>
@@ -54,9 +52,8 @@ function GarageHero({ onStart, onGarage, onRev, onHorn, revving, honking, landin
     </div>
     <div className={`car-stage ${visual.ready?'scene-ready':''} ${revving?'revving':''}`} data-render-mode={visual.ready?'interactive':'static'}>
       <div className="garage-wall" aria-hidden="true"><span>CAR-XY</span><div className="wall-line"/><span className="bay-number">01</span></div>
-      <img className="car-poster" src="/images/car-poster.svg" width="1000" height="600" fetchPriority="high" alt="Navy Car-XY sports car, viewed from the front and side"/>
+      <img className="car-poster" src="/images/car-poster.svg" width="1000" height="600" fetchPriority="high" alt="Side profile of the navy Car-XY sports car"/>
       {visual.mount&&<SceneBoundary onError={visual.onError}><Suspense fallback={null}><Scene onReady={visual.onReady} onError={visual.onError}/></Suspense></SceneBoundary>}
-      <div className="car-view-label"><span className="view-dot"/> NAVY BLUE · CAR-XY</div>
       <div className="car-visual-controls">{visual.ready&&<span><Hand size={13}/> DRAG TO ROTATE</span>}<button onClick={visual.toggle} aria-pressed={visual.staticOnly}>{visual.staticOnly||visual.failed?'LOAD 3D VIEW':'USE STATIC VIEW'}</button></div>
       <div className="car-spec"><div><strong>CAR-XY</strong><span>CAR-XY · 5.2L V10 · 602 HP</span></div></div>
     </div>
@@ -178,13 +175,13 @@ function Drive({ speed, ready, activeExit, navigatingExit, maneuver, maneuverPro
   const movingToExit = maneuver === 'exiting' || maneuver === 'returning';
   return <div className={`drive-screen topdown-screen maneuver-${maneuver}`}>
     <TopDownDrive speed={activeExit ? 0 : speed} branchVisible={ready || maneuver !== 'cruising'} maneuver={maneuver} maneuverProgress={maneuverProgress} selectedExit={navigatingExit}/>
-    <div className="drive-header"><Brand onClick={onGarage}/><div className="drive-location"><span className="status-dot"/> THE SCENIC ROUTE <span>TOP-DOWN TOUR · ONTARIO</span></div><button className="return-garage" onClick={onGarage}><RotateCcw size={15}/><span>RETURN TO GARAGE</span></button></div>
+    <div className="drive-header"><Brand onClick={onGarage} compact/><div className="drive-location">TOP-DOWN TOUR · ONTARIO</div><button className="return-garage" onClick={onGarage}><RotateCcw size={15}/><span>RETURN TO GARAGE</span></button></div>
     <aside className={`map-directory ${ready ? 'directory-visible' : ''}`} aria-hidden={!ready} inert={!ready}>
       <div className="map-sign-heading"><OntarioShield small/><div><span>EASTBOUND</span><h2>Choose your exit.</h2></div><ArrowUpRight size={26}/></div>
       <nav aria-label="Highway exits">{EXITS.map(exit=><button key={exit.id} className="map-exit-sign" onClick={()=>onSelect(exit)}><span className="map-exit-number">{exit.number}</span><span><strong>{exit.title}</strong><small>{exit.subtitle}</small></span><ArrowUpRight size={20}/></button>)}</nav>
       <div className="map-directory-note">SELECT A SECTION TO VIEW</div>
     </aside>
-    {!ready && !activeExit && <div className="map-drive-message"><span className="eyebrow">{maneuver === 'returning' ? 'JOINING THE ON-RAMP' : movingToExit ? 'FOLLOWING THE OFF-RAMP' : 'THE OPEN ROAD IS CALLING'}</span><h2>{maneuver === 'exiting' ? `Next stop: ${navigatingExit.title}.` : maneuver === 'returning' ? 'Back to the open road.' : speed < 40 ? 'Here we go.' : 'Finding your next adventure.'}</h2><p>{movingToExit ? 'Car-XY is taking the scenic route.' : 'Your exit signs will appear at cruising speed.'}</p></div>}
+    {!ready && !activeExit && <div className="map-drive-message">{movingToExit&&<span className="eyebrow">{maneuver === 'returning' ? 'JOINING THE ON-RAMP' : 'FOLLOWING THE OFF-RAMP'}</span>}<h2>{maneuver === 'exiting' ? `Next stop: ${navigatingExit.title}.` : maneuver === 'returning' ? 'Back to the open road.' : speed < 40 ? 'Here we go.' : 'Finding your next adventure.'}</h2><p>{movingToExit ? 'Car-XY is taking the scenic route.' : 'Your exit signs will appear at cruising speed.'}</p></div>}
     <div className="map-compass" aria-hidden="true"><Navigation size={20}/><span>E</span></div>
     <div className="map-telemetry" aria-label={`Speed ${speed} kilometres per hour, gear ${gearAt(speed)}`}><div className="map-telemetry-top"><span>CAR-XY</span><span className="status-dot"/></div><div className="map-speed"><span>{activeExit ? 'P' : gearAt(speed)}</span><strong>{speed.toString().padStart(3,'0')}</strong><small>KM/H</small></div><div className="map-rpm"><span style={{width:`${rpmAt(speed,rev?revEnvelope(revProgress):0)/8500*100}%`}}/></div><div className="map-drive-state">{activeExit ? 'PARKED · ENJOY THE STOP' : maneuver === 'exiting' ? 'INDICATOR ON · TAKING EXIT' : maneuver === 'returning' ? 'MERGING ONTO HIGHWAY 401' : ready ? 'CRUISING · PICK A DESTINATION' : 'ACCELERATING'}</div></div>
     <div className="drive-controls" id="drive-controls"><button onClick={onRev} className={rev ? 'active' : ''}><Gauge size={17}/><span>{rev ? 'REVVING…' : 'REV ENGINE'}</span><kbd>R</kbd></button><button onClick={onHorn} className={honking?'active':''}><Megaphone size={17}/><span>{honking?'HONKING…':'HORN'}</span><kbd>H</kbd></button><div className="drive-controls-divider"/><button className="control-icon" onClick={onMute} aria-label={muted ? 'Unmute sound' : 'Mute sound'}>{muted ? <VolumeX size={18}/> : <Volume2 size={18}/>}</button><button className="control-icon" onClick={()=>setHelp(!help)} aria-label="Show driving help" aria-expanded={help}><CircleHelp size={18}/></button></div>
