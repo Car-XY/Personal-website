@@ -33,6 +33,7 @@ body {min-width:0}
 .garage-room-backup img {position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:0;clip-path:none}
 .garage-room-caption>button {pointer-events:auto;border:1px solid #c1d4e744;background:#101e31d9;padding:9px 12px;font:7px var(--mono);letter-spacing:.6px}
 .garage-room-caption {justify-content:flex-end}
+.scene-static .garage-hotspot {backdrop-filter:none;background:#102031f5}
 .topdown-screen .drive-location {display:block;color:#afc2d8}
 .garage-open>.status-dot {margin-left:0}
 .garage-car-spec {font:9px var(--mono);letter-spacing:1px;color:#bdccdf}
