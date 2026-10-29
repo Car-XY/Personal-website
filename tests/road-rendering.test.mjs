@@ -10,7 +10,8 @@ const transformed=await transformWithEsbuild(readFileSync('src/TopDownDrive.jsx'
 const code=transformed.code
   .replaceAll('"react/jsx-runtime"',JSON.stringify(import.meta.resolve('react/jsx-runtime')))
   .replaceAll('"react"',JSON.stringify(import.meta.resolve('react')))
-  .replaceAll('"./drive.js"',JSON.stringify(new URL('../src/drive.js',import.meta.url).href));
+  .replaceAll('"./drive.js"',JSON.stringify(new URL('../src/drive.js',import.meta.url).href))
+  .replaceAll('"./exhaust.js"',JSON.stringify(new URL('../src/exhaust.js',import.meta.url).href));
 const {default:TopDownDrive}=await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
 const attributes=tag=>Object.fromEntries([...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map(([,key,value])=>[key,value]));
 const solid=paint=>/^#[\da-f]{6}$/i.test(paint||'');

@@ -5,11 +5,12 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { addCarDetails, disposeSceneResources } from './car-details.js';
+import { createExhaustFlames } from './exhaust-3d.js';
 
-export default function Scene({ onReady, onError }) {
+export default function Scene({ onReady, onError, onSnapshot, onExhaustLayout, revving=false, revProgress=0 }) {
   const host = useRef(null);
-  const callbacks = useRef({ onReady, onError });
-  callbacks.current = { onReady, onError };
+  const callbacks = useRef({ onReady, onError, onSnapshot, onExhaustLayout, revving, revProgress });
+  callbacks.current = { onReady, onError, onSnapshot, onExhaustLayout, revving, revProgress };
 
   useEffect(() => {
     const container = host.current;
@@ -26,7 +27,8 @@ export default function Scene({ onReady, onError }) {
     renderer.domElement.addEventListener('webglcontextlost', contextLost);
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 600);
-    let controls, car, disposed = false, frame, announced=false;
+    let controls, car, exhaust, disposed = false, frame, announced=false, snapshotSent=false, layoutSignature='',intensitySignature='',elapsed=0,viewportWidth=1,viewportHeight=1;
+    const reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
     const originalTextures = new Set();
     const clock = new THREE.Clock();
     const pmrem = new THREE.PMREMGenerator(renderer);
@@ -87,9 +89,11 @@ export default function Scene({ onReady, onError }) {
         });
         addCarDetails(car);
         scene.add(car);
+        exhaust=createExhaustFlames(car);
       }, undefined, () => { if(!disposed)callbacks.current.onError?.(); });
     const resize = () => {
       const { width, height } = container.getBoundingClientRect();
+      viewportWidth=width;viewportHeight=height;
       renderer.setSize(width, height); camera.aspect = width / Math.max(height, 1); camera.updateProjectionMatrix();
         camera.fov = width / height < 1 ? 46 : 35;
         camera.updateProjectionMatrix();
@@ -101,16 +105,26 @@ export default function Scene({ onReady, onError }) {
       frame = requestAnimationFrame(render);
       if (document.hidden) return;
       const dt = Math.min(clock.getDelta(), 0.05);
+      elapsed+=dt;
       controls?.update();
+      const intensity=exhaust?.update({active:callbacks.current.revving,progress:callbacks.current.revProgress,time:elapsed,camera,viewportHeight:viewportHeight*renderer.getPixelRatio(),reducedMotion:reduce.matches})||0;
+      const nextIntensity=intensity.toFixed(3);
+      if(nextIntensity!==intensitySignature){intensitySignature=nextIntensity;container.dataset.exhaustIntensity=nextIntensity;}
       renderer.render(scene, camera);
+      if(exhaust){
+        const layout=exhaust.project(camera,viewportWidth,viewportHeight);
+        const signature=JSON.stringify(layout,(_,value)=>typeof value==='number'?Math.round(value*1e6)/1e6:value);
+        if(signature!==layoutSignature){layoutSignature=signature;container.dataset.exhaustAnchors=signature;callbacks.current.onExhaustLayout?.(layout);}
+      }
       if(car&&!announced){announced=true;callbacks.current.onReady?.();}
+      if(car&&!snapshotSent&&callbacks.current.onSnapshot){snapshotSent=true;callbacks.current.onSnapshot(renderer.domElement.toDataURL('image/png'));}
     }
     render();
     return () => {
       disposed = true; cancelAnimationFrame(frame); observer.disconnect(); controls?.dispose();
       renderer.domElement.removeEventListener('webglcontextlost', contextLost);
       document.removeEventListener('visibilitychange', visibility);
-      draco.dispose(); disposeSceneResources(scene,originalTextures);
+      exhaust?.dispose();draco.dispose(); disposeSceneResources(scene,originalTextures);
       envTexture.dispose(); pmrem.dispose(); renderer.dispose(); renderer.domElement.remove();
     };
   }, []);

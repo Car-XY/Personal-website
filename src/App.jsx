@@ -38,7 +38,7 @@ function Header({ onStart, muted, onMute, garage, landing = false }) {
   </header>;
 }
 
-function GarageHero({ onStart, onGarage, onRev, onHorn, revving, honking, landing = false }) {
+function GarageHero({ onStart, onGarage, onRev, onHorn, revving, revProgress, honking, landing = false }) {
   const visual=useSceneEnhancement();
   return <section className="garage-hero" id="home" aria-labelledby="hero-title">
     <div className="hero-grid" aria-hidden="true"/>
@@ -53,7 +53,7 @@ function GarageHero({ onStart, onGarage, onRev, onHorn, revving, honking, landin
     <div className={`car-stage ${visual.ready?'scene-ready':''} ${revving?'revving':''}`} data-render-mode={visual.ready?'interactive':'static'}>
       <div className="garage-wall" aria-hidden="true"><span>CAR-XY</span><div className="wall-line"/><span className="bay-number">01</span></div>
       <img className="car-poster" src="/images/car-poster.svg" width="1000" height="600" fetchPriority="high" alt="Side profile of the navy Car-XY sports car"/>
-      {visual.mount&&<SceneBoundary onError={visual.onError}><Suspense fallback={null}><Scene onReady={visual.onReady} onError={visual.onError}/></Suspense></SceneBoundary>}
+      {visual.mount&&<SceneBoundary onError={visual.onError}><Suspense fallback={null}><Scene revving={revving} revProgress={revProgress} onReady={visual.onReady} onError={visual.onError}/></Suspense></SceneBoundary>}
       <div className="car-visual-controls">{visual.ready&&<span><Hand size={13}/> DRAG TO ROTATE</span>}<button onClick={visual.toggle} aria-pressed={visual.staticOnly}>{visual.staticOnly||visual.failed?'LOAD 3D VIEW':'USE STATIC VIEW'}</button></div>
       <div className="car-spec"><div><strong>CAR-XY</strong><span>CAR-XY · 5.2L V10 · 602 HP</span></div></div>
     </div>
@@ -174,7 +174,7 @@ function Drive({ speed, ready, activeExit, navigatingExit, maneuver, maneuverPro
   const [help, setHelp] = useState(false);
   const movingToExit = maneuver === 'exiting' || maneuver === 'returning';
   return <div className={`drive-screen topdown-screen maneuver-${maneuver}`}>
-    <TopDownDrive speed={activeExit ? 0 : speed} branchVisible={ready || maneuver !== 'cruising'} maneuver={maneuver} maneuverProgress={maneuverProgress} selectedExit={navigatingExit}/>
+    <TopDownDrive speed={activeExit ? 0 : speed} revving={!!rev} revProgress={revProgress} branchVisible={ready || maneuver !== 'cruising'} maneuver={maneuver} maneuverProgress={maneuverProgress} selectedExit={navigatingExit}/>
     <div className="drive-header"><Brand onClick={onGarage} compact/><div className="drive-location">TOP-DOWN TOUR · ONTARIO</div><button className="return-garage" onClick={onGarage}><RotateCcw size={15}/><span>RETURN TO GARAGE</span></button></div>
     <aside className={`map-directory ${ready ? 'directory-visible' : ''}`} aria-hidden={!ready} inert={!ready}>
       <div className="map-sign-heading"><OntarioShield small/><div><span>EASTBOUND</span><h2>Choose your exit.</h2></div><ArrowUpRight size={26}/></div>
@@ -334,7 +334,7 @@ export default function App() {
       {garageSection&&<StopDialog origin="garage" exit={garageDestination(garageSection)} onBack={()=>setGarageSection(null)} onGarage={()=>setGarageSection(null)}/>}
     </> : <>
       <Header landing={landing} onStart={start} muted={muted} onMute={mute} garage={home}/>
-      <main className={landing ? 'landing-page' : 'garage-page'}><GarageHero landing={landing} onGarage={garage} onStart={start} onRev={revEngine} onHorn={horn} honking={honking} revving={!!rev}/>
+      <main className={landing ? 'landing-page' : 'garage-page'}><GarageHero landing={landing} onGarage={garage} onStart={start} onRev={revEngine} onHorn={horn} honking={honking} revving={!!rev} revProgress={revProgress}/>
         {!landing && <><RouteMap onStart={start} onSelect={()=>{}}/><Projects/><Teams/><Journey/><Skills/><Contact/></>}
       </main>{!landing && <Footer onStart={start}/>}
     </>}
