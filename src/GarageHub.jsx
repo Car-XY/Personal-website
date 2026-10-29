@@ -13,7 +13,7 @@ class RoomBoundary extends Component {
 }
 
 function RoomFallback() {
-  return <div className="garage-room-backup" aria-hidden="true"><picture><source media="(max-width:700px) and (orientation:portrait)" srcSet="/images/garage-poster-mobile.svg" width="600" height="960"/><img src="/images/garage-poster.svg" width="1200" height="750" alt="" fetchPriority="high"/></picture></div>;
+  return <div className="garage-room-backup" aria-hidden="true"><picture><source media="(max-width:700px) and (orientation:portrait)" srcSet="/images/garage-poster-mobile.png" width="750" height="1200"/><img src="/images/garage-poster.png" width="1600" height="900" alt="" fetchPriority="high"/></picture></div>;
 }
 
 export default function GarageHub({brand,onStart,onSection,onReadAll,muted,onMute,onRev,onHorn,revving,honking,locked}) {

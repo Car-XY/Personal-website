@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {EXITS} from '../src/drive.js';
 import {GARAGE_OBJECTS,garageDestination,canReturnToRoad,layoutGarageLabels,garagePosterLayout} from '../src/garage.js';
+import {GARAGE_POSTER} from '../src/posters.js';
 
 test('each portfolio section and the test drive has one physical garage destination',()=>{
   assert.deepEqual(new Set(GARAGE_OBJECTS.map(object=>object.id)),new Set([...EXITS.map(exit=>exit.id),'drive']));
@@ -22,12 +23,13 @@ test('garage label positions stay inside the viewport and retain their object an
 
 test('static garage labels track the artwork with one uniform scale at different aspect ratios',()=>{
   for(const [width,height] of [[1200,750],[1440,900],[1920,1080],[2560,1080]]){
-    const layout=garagePosterLayout(width,height),scale=Math.max(width/1200,height/750);
+    const {width:posterWidth,height:posterHeight}=GARAGE_POSTER;
+    const layout=garagePosterLayout(width,height),scale=Math.max(width/posterWidth,height/posterHeight);
     for(let i=0;i<GARAGE_OBJECTS.length;i++){
       const source=GARAGE_OBJECTS[i],point=layout.points[i];
       assert.equal(point.id,source.id);
-      assert.ok(Math.abs((point.x-width/2)-(source.fallback[0]*12-600)*scale)<1e-8);
-      assert.ok(Math.abs((point.y-height/2)-(source.fallback[1]*7.5-375)*scale)<1e-8);
+      assert.ok(Math.abs((point.x-width/2)-(source.fallback[0]/100*posterWidth-posterWidth/2)*scale)<1e-8);
+      assert.ok(Math.abs((point.y-height/2)-(source.fallback[1]/100*posterHeight-posterHeight/2)*scale)<1e-8);
     }
   }
 });

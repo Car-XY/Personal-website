@@ -33,6 +33,9 @@ test('nozzle anchors come from the actual rear exhaust mesh in local model coord
   const document=await io.read('public/models/car-xy.glb');
   const exhaust=document.getRoot().listNodes().find(node=>/ExhaustSystem/.test(node.getName()));
   assert.ok(exhaust,'the shipped model must retain its physical exhaust system');
+  const lamps=kind=>document.getRoot().listNodes().find(node=>new RegExp(`Light${kind}Highlight`).test(node.getName())).getMesh().listPrimitives()[0].getAttribute('POSITION');
+  assert.ok(lamps('Front').getMin([])[2]>1.6,'headlamps establish that positive Z is the nose');
+  assert.ok(lamps('Back').getMax([])[2]<-1.7,'rear lamps establish that negative Z is the tail');
   const positions=exhaust.getMesh().listPrimitives()[0].getAttribute('POSITION').getArray();
   const geometry=new THREE.BufferGeometry().setAttribute('position',new THREE.BufferAttribute(positions,3));
   const mesh=new THREE.Mesh(geometry,new THREE.MeshBasicMaterial());mesh.name=exhaust.getName();

@@ -15,6 +15,7 @@ body {min-width:0}
 .car-stage .garage-wall {inset:0;transform:none;border:0;background:linear-gradient(#14263b,#101e31)}
 .car-stage .ceiling-light,.car-stage .garage-floor,.car-stage .floor-ring {display:none}
 .car-poster {position:absolute;inset:20px 0 80px;width:100%;height:calc(100% - 100px);object-fit:contain;z-index:1;transition:opacity .25s}
+.hero-static-exhaust {position:absolute;inset:20px 0 80px;width:100%;height:calc(100% - 100px);z-index:1;pointer-events:none}
 .car-stage .car-scene {inset:0 0 84px;z-index:2;opacity:0;transition:opacity .25s}
 .car-stage.scene-ready .car-scene {opacity:1}
 .car-stage.scene-ready .car-poster {opacity:0;pointer-events:none}
@@ -101,6 +102,7 @@ body {min-width:0}
   .car-visual-controls button {font-size:6px;padding:8px}
   .car-stage .car-scene {bottom:65px}
   .car-poster {bottom:65px;height:calc(100% - 85px)}
+  .hero-static-exhaust {bottom:65px;height:calc(100% - 85px)}
   .garage-controls {gap:15px}
   .garage-controls>button {font-size:7px;gap:6px}
   .location {font-size:7px;gap:6px}
@@ -116,6 +118,7 @@ body {min-width:0}
   .stop-scroll .contact-section h2 {font-size:50px}
 }
 @media(prefers-reduced-motion:reduce) {
+  .hero-static-exhaust {display:none}
   .car-poster,.car-stage .car-scene,.garage-three-room,.garage-room-backup,.supplied-art img {transition:none}
   .revving .car-scene {animation:none}
 }

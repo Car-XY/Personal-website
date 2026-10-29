@@ -3,10 +3,12 @@ import { ArrowUpRight, ArrowRight, ArrowDown, Volume2, VolumeX, Download, Github
 import { EXITS, speedAt, gearAt, rpmAt, revSpeedAt, revEnvelope, EXIT_DURATION } from './drive.js';
 import { links, projects, skills, availability, currently } from './data.js';
 import { audio } from './audio.js';
-import TopDownDrive from './TopDownDrive.jsx';
+import TopDownDrive, { ExhaustJet2D } from './TopDownDrive.jsx';
 import GarageHub from './GarageHub.jsx';
 import { garageDestination, canReturnToRoad } from './garage.js';
 import { useSceneEnhancement } from './visuals.js';
+import { exhaustIntensityAt } from './exhaust.js';
+import { CAR_POSTER } from './posters.js';
 
 const Scene = lazy(() => import('./Scene.jsx'));
 
@@ -38,6 +40,19 @@ function Header({ onStart, muted, onMute, garage, landing = false }) {
   </header>;
 }
 
+function StaticCarExhaust({revving,progress}) {
+  const intensity=revving?exhaustIntensityAt(progress):0;
+  if(intensity<.005)return null;
+  const {width,height,exhaust}=CAR_POSTER;
+  return <svg className="hero-static-exhaust" viewBox={`0 0 ${width} ${height}`} aria-hidden="true" data-effect="static-rev-exhaust">
+    {exhaust.map((anchor,side)=>{
+      const dx=anchor.dx*width,dy=anchor.dy*height;
+      const angle=Math.atan2(dy,dx)*180/Math.PI-90,scale=Math.hypot(dx,dy)/32;
+      return <g key={side} transform={`translate(${anchor.x*width} ${anchor.y*height}) rotate(${angle}) scale(${scale})`}><ExhaustJet2D intensity={intensity} progress={progress} seed={side}/></g>;
+    })}
+  </svg>;
+}
+
 function GarageHero({ onStart, onGarage, onRev, onHorn, revving, revProgress, honking, landing = false }) {
   const visual=useSceneEnhancement();
   return <section className="garage-hero" id="home" aria-labelledby="hero-title">
@@ -52,7 +67,8 @@ function GarageHero({ onStart, onGarage, onRev, onHorn, revving, revProgress, ho
     </div>
     <div className={`car-stage ${visual.ready?'scene-ready':''} ${revving?'revving':''}`} data-render-mode={visual.ready?'interactive':'static'}>
       <div className="garage-wall" aria-hidden="true"><span>CAR-XY</span><div className="wall-line"/><span className="bay-number">01</span></div>
-      <img className="car-poster" src="/images/car-poster.svg" width="1000" height="600" fetchPriority="high" alt="Side profile of the navy Car-XY sports car"/>
+      {!visual.ready&&<StaticCarExhaust revving={revving} progress={revProgress}/>}
+      <img className="car-poster" src="/images/car-poster.png" width={CAR_POSTER.width} height={CAR_POSTER.height} fetchPriority="high" alt="Navy Car-XY sports car viewed from the front and side"/>
       {visual.mount&&<SceneBoundary onError={visual.onError}><Suspense fallback={null}><Scene revving={revving} revProgress={revProgress} onReady={visual.onReady} onError={visual.onError}/></Suspense></SceneBoundary>}
       <div className="car-visual-controls">{visual.ready&&<span><Hand size={13}/> DRAG TO ROTATE</span>}<button onClick={visual.toggle} aria-pressed={visual.staticOnly}>{visual.staticOnly||visual.failed?'LOAD 3D VIEW':'USE STATIC VIEW'}</button></div>
       <div className="car-spec"><div><strong>CAR-XY</strong><span>CAR-XY · 5.2L V10 · 602 HP</span></div></div>
@@ -283,6 +299,8 @@ export default function App() {
   function garage() {
     if (transition) return;
     if (mode === 'garage') { setGarageSection(null); document.getElementById('garage-room')?.scrollIntoView({behavior:'smooth'}); return; }
+    const poster=new Image();
+    poster.src=window.matchMedia('(max-width:700px) and (orientation:portrait)').matches?'/images/garage-poster-mobile.png':'/images/garage-poster.png';
     setTransition('garage'); audio.garage(); setActiveExit(null); setReady(false);
     timers.current.garage=setTimeout(()=>{
       setMode('garage'); setGarageSection(null); setReadAll(false); setSpeed(0); setTransition(null); setNavigatingExit(null); setManeuver('cruising'); setManeuverProgress(0);

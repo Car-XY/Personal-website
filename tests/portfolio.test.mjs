@@ -35,10 +35,12 @@ test('Cary’s supplied wording is retained and non-link skills have no arrows',
 test('the first HTML response has readable content and a small preloaded static car',()=>{
   const html=readFileSync('index.html','utf8');
   assert.match(html,/Hey, I’m Cary\./);assert.match(html,/First-year Engineering Science/);
-  assert.match(html,/rel="preload" as="image" href="\/images\/car-poster.svg"/);
-  for(const file of ['car-poster.svg','garage-poster.svg','garage-poster-mobile.svg']){
-    const image=readFileSync('public/images/'+file,'utf8');assert.match(image,/<svg/);
-    assert.doesNotMatch(image,/Audi|\bR8\b/i);assert.ok(image.length<25000);
+  assert.match(html,/rel="preload" as="image" href="\/images\/car-poster.png"/);
+  for(const [file,width,height,budget] of [['car-poster.png',1200,720,250000],['garage-poster.png',1600,900,1500000],['garage-poster-mobile.png',750,1200,1000000]]){
+    const image=readFileSync('public/images/'+file);
+    assert.deepEqual([...image.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+    assert.equal(image.readUInt32BE(16),width);assert.equal(image.readUInt32BE(20),height);
+    assert.ok(image.length<budget);
   }
   for(const name of ['anchor','kera','clearpath'])assert.ok(statSync(`public/images/projects/${name}.webp`).size<70000);
 });

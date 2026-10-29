@@ -35,6 +35,6 @@ Content lives in `src/data.js` and `src/App.jsx`; road motion and ramp geometry 
 
 Model optimization is reproducible with `node scripts/optimize-model.mjs` after placing the original model at `tmp/audi-original.glb`.
 
-The hero and garage show static artwork immediately, then optionally load 3D. Reduced-motion, data-saving, and `?view=static` visits keep the static view; the scene controls switch views. Model failure or a ten-second load timeout retains the artwork and working navigation.
+The hero and garage show static PNG frames immediately, then optionally load 3D. Reduced-motion, data-saving, and `?view=static` visits keep the static view; the scene controls switch views. Model failure or a ten-second load timeout retains the artwork and working navigation.
 
 See [ASSETS.md](ASSETS.md) for source attribution and third-party media notes. The Sites deployment is private to the owner.
