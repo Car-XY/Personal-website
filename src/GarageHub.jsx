@@ -35,23 +35,24 @@ export default function GarageHub({brand,onStart,onSection,onReadAll,muted,onMut
     }
     if(id==='drive')onStart();else onSection(id);
   };
-  const activeLayout=visual.ready&&layout?layout:posterLayout;
+  const activeLayout=visual.ready&&layout?layout:visual.showStatic?posterLayout:null;
   const labels=activeLayout?layoutGarageLabels(activeLayout.points,activeLayout.width,activeLayout.height):[];
   return <main className="garage-hub" id="garage-room" tabIndex="-1">
     <header className="site-header garage-hub-header">{brand}<div className="garage-header-actions"><button onClick={onReadAll} className="garage-read-button"><BookOpen size={15}/><span>READ PORTFOLIO</span></button><a href="/Cary-Li-Resume.pdf" target="_blank" rel="noreferrer" aria-label="Open résumé" className="garage-resume">RÉSUMÉ <ArrowUpRight size={14}/></a><button onClick={onMute} className="icon-button" aria-label={muted?'Unmute sound':'Mute sound'}>{muted?<VolumeX size={18}/>:<Volume2 size={18}/>}</button></div></header>
     <div className="garage-room-intro"><h1>The garage</h1></div>
-    <div ref={stage} className={`garage-room-stage ${visual.ready?'scene-ready':'scene-static'}`} data-render-mode={visual.ready?'interactive':'static'}>
+    <div ref={stage} className={`garage-room-stage ${visual.ready?'scene-ready':visual.showStatic?'scene-static':'scene-loading-room'}`} data-render-mode={visual.loading?'loading':visual.ready?'interactive':'static'} aria-busy={visual.loading}>
       <div className="garage-room-grid"/>
-      <RoomFallback/>
+      {visual.showStatic&&<RoomFallback/>}
+      {visual.loading&&<div className="scene-loading" role="status">LOADING 3D GARAGE…</div>}
       {visual.mount&&<RoomBoundary onError={visual.onError}><Suspense fallback={null}><GarageRoom highlighted={highlighted} disabled={locked} onSelect={id=>choose(id,true)} onHover={setHighlighted} onLayout={setLayout} onReady={visual.onReady} onError={visual.onError}/></Suspense></RoomBoundary>}
 
-      <div className="garage-object-hotspots" aria-label="Garage objects">
+      {!visual.loading&&<div className="garage-object-hotspots" aria-label="Garage objects">
         {activeLayout&&<svg className="garage-leaders" viewBox={`0 0 ${activeLayout.width} ${activeLayout.height}`} aria-hidden="true">{labels.map(label=><g key={label.id} className={highlighted===label.id?'active':''}><path d={`M${label.anchorX} ${label.anchorY}L${label.x} ${label.y}`}/><circle cx={label.anchorX} cy={label.anchorY} r="3"/></g>)}</svg>}
         {GARAGE_OBJECTS.map(object=>{
           const position=labels.find(label=>label.id===object.id),Icon=icons[object.id];
           return <button key={object.id} className={`garage-hotspot ${highlighted===object.id?'is-highlighted':''}`} data-garage-object={object.id} style={{left:position?`${position.x/activeLayout.width*100}%`:`${object.fallback[0]}%`,top:position?`${position.y/activeLayout.height*100}%`:`${object.fallback[1]}%`}} onClick={()=>choose(object.id)} onPointerEnter={()=>setHighlighted(object.id)} onPointerLeave={()=>setHighlighted(null)} onFocus={()=>setHighlighted(object.id)} onBlur={()=>setHighlighted(null)} disabled={locked} aria-label={`${object.title} — ${object.object}`}><span className="garage-pin"><Icon size={15}/></span><span><small>{object.number} / {object.object}</small><strong>{object.title}</strong></span><ArrowUpRight size={13}/></button>;
         })}
-      </div>
+      </div>}
       <div className="garage-room-caption"><button onClick={visual.toggle} aria-pressed={visual.staticOnly}>{visual.staticOnly||visual.failed?'LOAD 3D VIEW':'USE STATIC VIEW'}</button></div>
     </div>
     <nav className="garage-object-directory" id="garage-directory" tabIndex="-1" aria-label="Garage directory">{GARAGE_OBJECTS.map(object=>{const Icon=icons[object.id];return <button key={object.id} data-garage-link={object.id} onClick={()=>choose(object.id)} onFocus={()=>setHighlighted(object.id)} onBlur={()=>setHighlighted(null)} onPointerEnter={()=>setHighlighted(object.id)} onPointerLeave={()=>setHighlighted(null)} disabled={locked}><Icon size={17}/><span><small>{object.object}</small><strong>{object.title}</strong></span><ArrowUpRight size={13}/></button>;})}</nav>

@@ -19,6 +19,8 @@ body {min-width:0}
 .car-stage .car-scene {inset:0 0 84px;z-index:2;opacity:0;transition:opacity .25s}
 .car-stage.scene-ready .car-scene {opacity:1}
 .car-stage.scene-ready .car-poster {opacity:0;pointer-events:none}
+.scene-loading {position:absolute;inset:0 0 84px;z-index:2;display:grid;place-items:center;pointer-events:none;color:#9bb1c9;font:9px var(--mono);letter-spacing:1.5px}
+.garage-room-stage>.scene-loading {inset:0}
 .car-view-label {top:20px;right:22px;z-index:3}
 .car-visual-controls {position:absolute;bottom:88px;left:22px;right:22px;display:flex;justify-content:space-between;align-items:center;gap:10px;z-index:3}
 .car-visual-controls>span {display:flex;align-items:center;gap:7px;font:7px var(--mono);color:#9bb1c9}

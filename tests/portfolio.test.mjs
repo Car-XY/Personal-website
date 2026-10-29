@@ -2,7 +2,28 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,statSync} from 'node:fs';
 import {projects,skills,availability,currently} from '../src/data.js';
-import {prefersStaticVisuals} from '../src/visuals.js';
+import {prefersStaticVisuals,useSceneEnhancement} from '../src/visuals.js';
+import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+
+test('the initial scene mounts 3D immediately and reserves posters for explicit static preferences',()=>{
+  const originals=Object.fromEntries(['window','navigator'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+  function Probe(){
+    const scene=useSceneEnhancement();
+    return createElement('output',null,JSON.stringify({mount:scene.mount,loading:scene.loading,showStatic:scene.showStatic,ready:scene.ready}));
+  }
+  try{
+    for(const preference of [{},{search:'?view=static'},{reducedMotion:true},{saveData:true}]){
+      Object.defineProperty(globalThis,'window',{configurable:true,value:{matchMedia:()=>({matches:!!preference.reducedMotion}),location:{search:preference.search||''}}});
+      Object.defineProperty(globalThis,'navigator',{configurable:true,value:{connection:{saveData:!!preference.saveData}}});
+      const staticOnly=prefersStaticVisuals(preference);
+      const expected={mount:!staticOnly,loading:!staticOnly,showStatic:staticOnly,ready:false};
+      assert.equal(renderToStaticMarkup(createElement(Probe)),renderToStaticMarkup(createElement('output',null,JSON.stringify(expected))));
+    }
+  }finally{
+    for(const [key,descriptor] of Object.entries(originals))if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];
+  }
+});
 
 test('motion/data preferences and the shareable static view skip automatic 3D',()=>{
   assert.equal(prefersStaticVisuals(),false);
@@ -32,10 +53,12 @@ test('Cary’s supplied wording is retained and non-link skills have no arrows',
   assert.ok(source.includes('IB Diploma · 41/45')&&source.includes('DECA ICDC qualifier'));
 });
 
-test('the first HTML response has readable content and a small preloaded static car',()=>{
+test('the first HTML response stays readable without downloading a poster before 3D',()=>{
   const html=readFileSync('index.html','utf8');
   assert.match(html,/Hey, I’m Cary\./);assert.match(html,/First-year Engineering Science/);
-  assert.match(html,/rel="preload" as="image" href="\/images\/car-poster.png"/);
+  assert.doesNotMatch(html,/rel="preload" as="image"/);
+  assert.doesNotMatch(html.replace(/<noscript>[\s\S]*?<\/noscript>/g,''),/<img/);
+  assert.match(html,/<noscript><img src="\/images\/car-poster.png"/);
   for(const [file,width,height,budget] of [['car-poster.png',1200,720,250000],['garage-poster.png',1600,900,1500000],['garage-poster-mobile.png',750,1200,1000000]]){
     const image=readFileSync('public/images/'+file);
     assert.deepEqual([...image.subarray(0,8)],[137,80,78,71,13,10,26,10]);

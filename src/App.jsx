@@ -65,10 +65,10 @@ function GarageHero({ onStart, onGarage, onRev, onHorn, revving, revProgress, ho
       <p className="currently-note">{currently}</p>
       <div className="sound-note"><AudioLines size={15}/><span>Sound is optional.</span></div>
     </div>
-    <div className={`car-stage ${visual.ready?'scene-ready':''} ${revving?'revving':''}`} data-render-mode={visual.ready?'interactive':'static'}>
+    <div className={`car-stage ${visual.ready?'scene-ready':''} ${revving?'revving':''}`} data-render-mode={visual.loading?'loading':visual.ready?'interactive':'static'} aria-busy={visual.loading}>
       <div className="garage-wall" aria-hidden="true"><span>CAR-XY</span><div className="wall-line"/><span className="bay-number">01</span></div>
-      {!visual.ready&&<StaticCarExhaust revving={revving} progress={revProgress}/>}
-      <img className="car-poster" src="/images/car-poster.png" width={CAR_POSTER.width} height={CAR_POSTER.height} fetchPriority="high" alt="Navy Car-XY sports car viewed from the front and side"/>
+      {visual.loading&&<div className="scene-loading" role="status">LOADING 3D VIEW…</div>}
+      {visual.showStatic&&<><StaticCarExhaust revving={revving} progress={revProgress}/><img className="car-poster" src="/images/car-poster.png" width={CAR_POSTER.width} height={CAR_POSTER.height} fetchPriority="high" alt="Navy Car-XY sports car viewed from the front and side"/></>}
       {visual.mount&&<SceneBoundary onError={visual.onError}><Suspense fallback={null}><Scene revving={revving} revProgress={revProgress} onReady={visual.onReady} onError={visual.onError}/></Suspense></SceneBoundary>}
       <div className="car-visual-controls">{visual.ready&&<span><Hand size={13}/> DRAG TO ROTATE</span>}<button onClick={visual.toggle} aria-pressed={visual.staticOnly}>{visual.staticOnly||visual.failed?'LOAD 3D VIEW':'USE STATIC VIEW'}</button></div>
       <div className="car-spec"><div><strong>CAR-XY</strong><span>CAR-XY · 5.2L V10 · 602 HP</span></div></div>
@@ -299,8 +299,6 @@ export default function App() {
   function garage() {
     if (transition) return;
     if (mode === 'garage') { setGarageSection(null); document.getElementById('garage-room')?.scrollIntoView({behavior:'smooth'}); return; }
-    const poster=new Image();
-    poster.src=window.matchMedia('(max-width:700px) and (orientation:portrait)').matches?'/images/garage-poster-mobile.png':'/images/garage-poster.png';
     setTransition('garage'); audio.garage(); setActiveExit(null); setReady(false);
     timers.current.garage=setTimeout(()=>{
       setMode('garage'); setGarageSection(null); setReadAll(false); setSpeed(0); setTransition(null); setNavigatingExit(null); setManeuver('cruising'); setManeuverProgress(0);
