@@ -22,10 +22,16 @@ export function addCarDetails(car) {
     mesh.name = name; mesh.position.set(...position);
     mesh.castShadow = true; mesh.receiveShadow = true; details.add(mesh); return mesh;
   }
-  solid('Sealed_Underbody', [1.65,.14,3.65], [0,.22,0]);
+  // Follow the tapered nose and tail rather than exposing rectangular corners
+  // through the bumper openings. Keep the closure above the lower body trim.
+  const footprint=[[-.53,1.83],[.53,1.83],[.70,1.35],[.73,.65],[.73,-1.35],[.55,-1.84],[-.55,-1.84],[-.73,-1.35],[-.73,.65],[-.70,1.35]];
+  const outline=new THREE.Shape(footprint.map(([x,z])=>new THREE.Vector2(x,-z)));
+  const underbody=new THREE.Mesh(new THREE.ExtrudeGeometry(outline,{depth:.055,bevelEnabled:false}),trim);
+  underbody.name='Sealed_Underbody';underbody.rotation.x=-Math.PI/2;underbody.position.y=.14;
+  underbody.castShadow=true;underbody.receiveShadow=true;details.add(underbody);
   solid('Cabin_Floor', [1.4,.1,1.5], [0,.48,-.05]);
-  solid('Rear_Cabin_Bulkhead', [1.45,.58,.1], [0,.7,-.72]);
-  solid('Dashboard', [1.45,.2,.32], [0,.78,.48]);
+  solid('Rear_Cabin_Bulkhead', [1.1,.42,.1], [0,.67,-.72]);
+  solid('Dashboard', [1.22,.14,.32], [0,.71,.48]);
   [-.38,.38].forEach((x,i) => {
     solid(`Seat_${i+1}_Cushion`, [.42,.13,.5], [x,.6,-.2], leather);
     const back = solid(`Seat_${i+1}_Back`, [.43,.48,.12], [x,.85,-.45], leather);
