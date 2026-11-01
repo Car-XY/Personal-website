@@ -5,6 +5,11 @@ body {min-width:0}
 .hero-copy h1 {font-size:clamp(68px,7.4vw,112px);width:100%;margin:20px 0 25px}
 .hero-intro {font-size:16px;max-width:450px;line-height:1.7}
 .hero-description {font-size:13px;margin-top:14px}
+.formula-lidar {position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);width:150px;height:150px;color:#b3cfff;opacity:.8}
+.formula .team-role {line-height:1.7;flex-wrap:wrap}
+.podcast-channel {margin-top:14px}
+.contact-bottom .hardware-invitation {font-size:13px;line-height:1.7;margin:12px 0 18px;max-width:480px}
+.project-links {flex-wrap:wrap}
 .landing-page .hero-cta {position:static;inset:auto;display:flex;flex-direction:row;flex-wrap:wrap;gap:12px;width:auto;max-width:none;margin-top:25px}
 .hero-cta .start-button {padding:17px 18px;font-size:10px;gap:10px}
 .hero-cta .start-button svg:last-child {margin-left:0}

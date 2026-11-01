@@ -41,13 +41,13 @@ test('each project exposes contributions, an outcome, a status and useful public
     if(project.privateSource)assert.equal(github.length,0);
     else{assert.equal(github.length,1);assert.equal(new URL(github[0].href).pathname.split('/').filter(Boolean).length,2);}
   }
-  assert.equal(projects.find(p=>p.visual==='kera').outcome,'15.96 g/L MAE on 50 held-out patients');
+  assert.equal(projects.find(p=>p.visual==='kera').outcome,'About 16 g/L mean absolute error on study data');
   assert.ok(projects.find(p=>p.visual==='anchor').links.some(link=>link.href==='https://anchor-productivity.up.railway.app/'));
 });
 
 test('Cary’s supplied wording is retained and non-link skills have no arrows',()=>{
   assert.equal(availability,"I'm looking for Summer 2027 internships! (or just a good conversation about building things😉)");
-  assert.equal(currently,"Currently working on developing a lightweight CNN that can use sensor fusion to detect cone colour and position for UTFR's DV team.");
+  assert.equal(currently,"Currently developing a lightweight CNN that uses LiDAR intensity values to identify cone colour and position.");
   assert.ok(skills.every(skill=>skill.items.every(item=>!item.includes('↗'))));
   const source=readFileSync('src/App.jsx','utf8');
   assert.ok(source.includes('IB Diploma · 41/45')&&source.includes('DECA ICDC qualifier'));

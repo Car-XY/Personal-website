@@ -50,7 +50,6 @@ export function addCarDetails(car) {
   ctx.font = 'bold 110px Arial'; ctx.fillText('Car-XY',384,150);
   ctx.font = '18px Arial'; ctx.fillText('YOURS TO DISCOVER',384,194);
   const texture = new THREE.CanvasTexture(plateCanvas); texture.colorSpace = THREE.SRGBColorSpace;
-  const plateMaterial = new THREE.MeshBasicMaterial({ map:texture, side:THREE.DoubleSide });
   const originals = [];
   car.updateMatrixWorld(true);
   car.traverse(node => { if (node.isMesh && /NumbrePlate/i.test(node.name)) originals.push(node); });
@@ -58,12 +57,24 @@ export function addCarDetails(car) {
     const bounds = new THREE.Box3().setFromObject(original);
     const center = car.worldToLocal(bounds.getCenter(new THREE.Vector3()));
     const front = center.z > 0;
-    original.visible = false;
-    const plate = new THREE.Mesh(new THREE.PlaneGeometry(.5,.143), plateMaterial);
-    plate.name = `CarXY_LicensePlate_${i}`;
-    plate.position.copy(center); plate.position.z += front ? .022 : -.022;
-    plate.rotation.y = front ? 0 : Math.PI;
-    plate.renderOrder = 2; details.add(plate);
+    // Texture the model's actual mounted plate instead of placing a second
+    // plane centimetres in front of the bumper.
+    const geometry=original.geometry,positions=geometry.getAttribute('position');
+    geometry.computeBoundingBox();
+    const {min,max}=geometry.boundingBox,uv=[];
+    for(let vertex=0;vertex<positions.count;vertex++){
+      const u=(positions.getX(vertex)-min.x)/(max.x-min.x);
+      uv.push(front?u:1-u,(positions.getY(vertex)-min.y)/(max.y-min.y));
+    }
+    geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+    const materials=Array.isArray(original.material)?original.material:[original.material];
+    materials.forEach(material=>{
+      material.map=texture;material.color.set('#ffffff');material.side=THREE.DoubleSide;
+      material.metalness=.05;material.roughness=.65;
+      material.polygonOffset=true;material.polygonOffsetFactor=-1;material.polygonOffsetUnits=-1;
+      material.needsUpdate=true;
+    });
+    original.name=`CarXY_LicensePlate_${i}`;
   });
   car.add(details);
   return details;
