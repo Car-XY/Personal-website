@@ -6,6 +6,7 @@
 - Horn: [user-supplied car horn recording](https://www.youtube.com/watch?v=iFPBhBRMyfw&t=2s), trimmed to the audible 01.02–02.80 passage with short click-free edge fades. Replayed locally by the horn buttons or H key.
 - Road signs: original HTML/CSS illustrations based on the supplied Ontario 401 reference; the watermarked reference image is not embedded.
 - Anchor, Kera, and ClearPath thumbnails: screenshots/Devpost artwork supplied by Cary, resized and encoded as WebP without changing the depicted content.
+- U of T Formula Racing thumbnail: Cary’s supplied LiDAR cone-detection screenshot, cropped to remove viewer controls and encoded as WebP. A CSS gradient keeps its overlaid title readable.
 - Racing illustration, top-down highway and R8 sprite, evergreen scenery, and garage environment: original SVG/CSS/Three.js artwork. All destinations share a straight off-ramp and a separate forward-moving on-ramp.
 - The garage model includes a procedural closed underbody, basic seats and cabin, and CanvasTexture Ontario lettering reading Car-XY applied directly to the model’s mounted front and rear plates.
 - Garage room: original Three.js geometry and canvas textures for the concrete and brick surfaces, diamond-plate service bay, mezzanine, stairs, ceiling beams, fluorescent fixtures, neon wrench outlines, workbench, racing rack, story wall, tool chest, and contact station. The garage is built entirely as native geometry, with no photographic background. The static garage uses a PNG frame of the same room and car.

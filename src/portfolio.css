@@ -5,7 +5,10 @@ body {min-width:0}
 .hero-copy h1 {font-size:clamp(68px,7.4vw,112px);width:100%;margin:20px 0 25px}
 .hero-intro {font-size:16px;max-width:450px;line-height:1.7}
 .hero-description {font-size:13px;margin-top:14px}
-.formula-lidar {position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);width:150px;height:150px;color:#b3cfff;opacity:.8}
+.teams-grid .team-art {height:auto;aspect-ratio:16/9}
+.formula-thumbnail {position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.9) saturate(.9)}
+.formula-photo::after {content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,#080f1e00 48%,#080f1ef2 100%);pointer-events:none}
+.formula-photo .team-art-meta {left:20px;bottom:16px;max-width:calc(100% - 40px);font-size:8px;line-height:1.5;font-weight:600;letter-spacing:1.5px;color:#f0f5ff;text-shadow:0 1px 3px #000}
 .formula .team-role {line-height:1.7;flex-wrap:wrap}
 .podcast-channel {margin-top:14px}
 .contact-bottom .hardware-invitation {font-size:13px;line-height:1.7;margin:12px 0 18px;max-width:480px}
