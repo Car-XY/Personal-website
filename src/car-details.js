@@ -13,6 +13,14 @@ export function disposeSceneResources(root, extraTextures = []) {
 }
 
 export function addCarDetails(car) {
+  // The hollow shell is visible through the windows, including its inner faces.
+  car.traverse(object=>{
+    const materials=Array.isArray(object.material)?object.material:[object.material];
+    materials.forEach(material=>{
+      if(!material||!/BodyMaterial|RoofCanvas|CarbonFibre/i.test(material.name))return;
+      material.side=THREE.DoubleSide;material.needsUpdate=true;
+    });
+  });
   // The source model is about 4.4 m long, centred on X/Z, with Y up.
   const trim = new THREE.MeshStandardMaterial({ color: '#111820', roughness: .82, metalness: .15 });
   const leather = new THREE.MeshStandardMaterial({ color: '#1a222c', roughness: .9 });

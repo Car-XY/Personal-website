@@ -1,5 +1,5 @@
 import { Component, Suspense, lazy, useEffect, useRef, useState } from 'react';
-import { ArrowUpRight, ArrowRight, ArrowDown, Volume2, VolumeX, Download, Github, Linkedin, Menu, X, Power, Gauge, MapPin, RotateCcw, CircleHelp, ExternalLink, Check, Navigation, Hand, CarFront, AudioLines, Megaphone } from 'lucide-react';
+import { ArrowUpRight, ArrowRight, ArrowDown, Volume2, VolumeX, Download, Github, Linkedin, Menu, X, Power, Gauge, MapPin, RotateCcw, CircleHelp, ExternalLink, Check, Navigation, Hand, CarFront, Megaphone } from 'lucide-react';
 import { EXITS, speedAt, gearAt, rpmAt, revSpeedAt, revEnvelope, EXIT_DURATION } from './drive.js';
 import { links, projects, skills, availability, currently } from './data.js';
 import { audio } from './audio.js';
@@ -63,7 +63,6 @@ function GarageHero({ onStart, onGarage, onRev, onHorn, revving, revProgress, ho
       <p className="hero-description">Hop in — I’ll show you around.</p>
       <div className="hero-cta" id={landing?'mode-choice':undefined}><button className="start-button" onClick={onStart}><Power size={18}/><span>TEST DRIVE CAR-XY</span><ArrowUpRight size={21}/></button><button className="enter-garage-button" onClick={onGarage}>ENTER THE GARAGE <ArrowRight size={18}/></button></div>
       <p className="currently-note">{currently}</p>
-      <div className="sound-note"><AudioLines size={15}/><span>Sound is optional.</span></div>
     </div>
     <div className={`car-stage ${visual.ready?'scene-ready':''} ${revving?'revving':''}`} data-render-mode={visual.loading?'loading':visual.ready?'interactive':'static'} aria-busy={visual.loading}>
       <div className="garage-wall" aria-hidden="true"><span>CAR-XY</span><div className="wall-line"/><span className="bay-number">01</span></div>

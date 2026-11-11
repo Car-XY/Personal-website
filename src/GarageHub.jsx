@@ -39,7 +39,7 @@ export default function GarageHub({brand,onStart,onSection,onReadAll,muted,onMut
   const labels=activeLayout?layoutGarageLabels(activeLayout.points,activeLayout.width,activeLayout.height):[];
   return <main className="garage-hub" id="garage-room" tabIndex="-1">
     <header className="site-header garage-hub-header">{brand}<div className="garage-header-actions"><button onClick={onReadAll} className="garage-read-button"><BookOpen size={15}/><span>READ PORTFOLIO</span></button><a href="/Cary-Li-Resume.pdf" target="_blank" rel="noreferrer" aria-label="Open résumé" className="garage-resume">RÉSUMÉ <ArrowUpRight size={14}/></a><button onClick={onMute} className="icon-button" aria-label={muted?'Unmute sound':'Mute sound'}>{muted?<VolumeX size={18}/>:<Volume2 size={18}/>}</button></div></header>
-    <div className="garage-room-intro"><h1>The garage</h1></div>
+    <div className="garage-room-intro"><h1>THE GARAGE</h1></div>
     <div ref={stage} className={`garage-room-stage ${visual.ready?'scene-ready':visual.showStatic?'scene-static':'scene-loading-room'}`} data-render-mode={visual.loading?'loading':visual.ready?'interactive':'static'} aria-busy={visual.loading}>
       <div className="garage-room-grid"/>
       {visual.showStatic&&<RoomFallback/>}

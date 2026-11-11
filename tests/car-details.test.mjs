@@ -68,3 +68,25 @@ test('shared geometry, materials, and detached textures are released once on sce
   for(const [name,resource]of Object.entries({geometry,material,texture,detached}))resource.addEventListener('dispose',()=>disposed[name]++);
   disposeSceneResources(root,[detached,texture]);assert.deepEqual(disposed,{geometry:1,material:1,texture:1,detached:1});
 });
+
+test('both original door panels remain visible from inside and outside the cabin',async()=>{
+  globalThis.document={createElement:()=>({getContext:()=>({fillRect(){},strokeRect(){},fillText(){}})})};
+  const io=new NodeIO().registerExtensions([KHRDracoMeshCompression]).registerDependencies({'draco3d.decoder':await draco.createDecoderModule()});
+  const source=await io.read('public/models/car-xy.glb');
+  const primitive=source.getRoot().listNodes().find(node=>/Doors_Plane/.test(node.getName())).getMesh().listPrimitives()[0];
+  const geometry=new THREE.BufferGeometry().setAttribute('position',new THREE.BufferAttribute(primitive.getAttribute('POSITION').getArray(),3));
+  geometry.setIndex(new THREE.BufferAttribute(primitive.getIndices().getArray(),1));
+  const material=new THREE.MeshStandardMaterial();material.name=primitive.getMaterial().getName();
+  const doors=new THREE.Mesh(geometry,material),car=new THREE.Group();car.add(doors);
+  const glass=new THREE.Mesh(new THREE.PlaneGeometry(),new THREE.MeshStandardMaterial({transparent:true,opacity:.84}));
+  glass.material.name='WindscreenGlassGrey';car.add(glass);
+  addCarDetails(car);car.updateMatrixWorld(true);
+  for(const side of [-1,1]){
+    const inside=new THREE.Raycaster(new THREE.Vector3(0,.6,0),new THREE.Vector3(side,0,0));
+    const outside=new THREE.Raycaster(new THREE.Vector3(side*3,.6,0),new THREE.Vector3(-side,0,0));
+    assert.ok(inside.intersectObject(doors).length,'far door must remain visible through the windshield');
+    assert.ok(outside.intersectObject(doors).length,'exterior door must remain visible');
+  }
+  assert.equal(glass.material.side,THREE.FrontSide,'glass keeps its existing transparency rendering');
+  disposeSceneResources(car);
+});
