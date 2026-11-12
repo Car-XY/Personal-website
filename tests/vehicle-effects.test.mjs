@@ -4,13 +4,15 @@ import {readFileSync} from 'node:fs';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {transformWithEsbuild} from 'vite';
+import {CAR_SPRITE} from '../src/car-sprite.js';
 
 const transformed=await transformWithEsbuild(readFileSync('src/TopDownDrive.jsx','utf8'),'TopDownDrive.jsx',{loader:'jsx',jsx:'automatic'});
 const code=transformed.code
   .replaceAll('"react/jsx-runtime"',JSON.stringify(import.meta.resolve('react/jsx-runtime')))
   .replaceAll('"react"',JSON.stringify(import.meta.resolve('react')))
   .replaceAll('"./drive.js"',JSON.stringify(new URL('../src/drive.js',import.meta.url).href))
-  .replaceAll('"./exhaust.js"',JSON.stringify(new URL('../src/exhaust.js',import.meta.url).href));
+  .replaceAll('"./exhaust.js"',JSON.stringify(new URL('../src/exhaust.js',import.meta.url).href))
+  .replaceAll('"./car-sprite.js"',JSON.stringify(new URL('../src/car-sprite.js',import.meta.url).href));
 const {CarSprite,ExhaustJet2D}=await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
 const headlightSource=await transformWithEsbuild(readFileSync('src/StaticHeadlights.jsx','utf8'),'StaticHeadlights.jsx',{loader:'jsx',jsx:'automatic'});
 const headlightCode=headlightSource.code.replaceAll('"react/jsx-runtime"',JSON.stringify(import.meta.resolve('react/jsx-runtime'))).replaceAll('"react"',JSON.stringify(import.meta.resolve('react')));
@@ -49,7 +51,7 @@ test('reusable flame instances have isolated gradients and the sprite keeps neut
   assert.equal(new Set(ids).size,ids.length);
   for(const reference of svg.matchAll(/url\(#([^)]*)\)/g))assert.ok(ids.includes(reference[1]));
   assert.match(svg,/Car-XY/);assert.doesNotMatch(svg,/\bAudi\b|\bR8\b/i);
-  for(const feature of ['headlights','cockpit','side-blades','engine-bay','exhaust-outlets'])assert.ok(svg.includes(`data-feature="${feature}"`));
+  for(const feature of ['body','headlights','taillights','exhaust-outlets'])assert.ok(svg.includes(`data-feature="${feature}"`));
   const css=readFileSync('src/topdown.css','utf8');
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)[^\n]*\.map-exhaust-motion\{display:none\}/);
 });
@@ -70,4 +72,24 @@ test('static headlight overlays follow the lamp mesh without ovals or projected 
     assert.match(artwork,/fill="#ffe459"/);
     assert.doesNotMatch(artwork,/<(?:circle|ellipse|linearGradient|radialGradient)\b/);
   }
+});
+
+test('turn indicators reuse the front and rear light clusters on the selected side',()=>{
+  assert.doesNotMatch(render({turning:false}),/data-indicator=/);
+  for(const side of ['left','right']){
+    const svg=render({turning:true,turnSide:side});
+    const front=attributes(svg.match(/<path[^>]*data-indicator="front"[^>]*>/)[0]);
+    const rear=attributes(svg.match(/<path[^>]*data-indicator="rear"[^>]*>/)[0]);
+    assert.equal(front.d,CAR_SPRITE.headlights[side]);
+    assert.equal(rear.d,CAR_SPRITE.taillights[side]);
+    assert.match(svg,new RegExp('data-turn-side="'+side+'"'));
+  }
+});
+
+test('the flat car artwork is a compact transparent sprite from the shared coupe',()=>{
+  const image=readFileSync('public'+CAR_SPRITE.image);
+  assert.equal(image.subarray(1,4).toString(),'PNG');
+  assert.equal(image.readUInt32BE(16),272);assert.equal(image.readUInt32BE(20),512);
+  assert.ok(image.length<100000);
+  assert.match(render({}),/href="\/images\/car-topdown.png"/);
 });
