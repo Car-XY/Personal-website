@@ -1,0 +1,79 @@
+:root {
+  --bg:#091b3b;
+  --panel:#10294b;
+  --accent:#f0abc0;
+  --muted:#9baec8;
+  --border:#9eafcb2b;
+  --brand-navy:#0a234b;
+  --brand-red:#b61943;
+  --brand-red-hover:#cf2853;
+  --brand-red-text:#f0abc0;
+  --brand-red-border:#c8375c66;
+}
+
+body {background:var(--bg)}
+::selection {background:#a71b47;color:#fff7fa}
+:focus-visible {outline-color:var(--brand-red-text)}
+.site-header {background:#091b3bed;border-bottom-color:#b7274e33}
+.brand {align-items:stretch}
+.brand-mark {position:relative;display:block;flex:none;width:1.5em}
+.brand-mark svg {position:absolute;inset:0;display:block;width:100%;height:100%}
+.brand-wordmark {display:block;line-height:1}
+.brand-compact .brand-mark {width:.95em}
+.brand-dash {color:#f4f5fa}
+.hero-copy h1>span:first-child {color:#d7375d}
+.hero-copy .currently-note {border-left:2px solid var(--brand-red);padding-left:14px}
+.start-button {background:var(--brand-red);color:#fff7fa;border-color:var(--brand-red)}
+.start-button:hover {background:var(--brand-red-hover);color:#fff7fa}
+.hero-cta .enter-garage-button {border-color:#b9375b80;color:#f7ecf2}
+.hero-cta .enter-garage-button:hover {background:#4a1836;border-color:#e57494}
+.landing-page .car-stage {background:#10244a;border-color:#b7274e44;border-top-color:#bb244e}
+.car-stage .garage-wall {background:linear-gradient(#142b50,#0d1e3e)}
+.car-visual-controls button {background:#0b2140e8;border-color:#b8375c70}
+.car-spec {border-top-color:#c340642e}
+.hero-bottom {border-top-color:#b7274e33}
+
+.section-number {color:var(--brand-red-text);background:#b6194314;border-color:#d0456b4d}
+.section-heading .eyebrow,.project-category,.team-role {color:var(--brand-red-text)}
+.text-link:hover,.resume-link:hover,.social-links a:hover,.project-links a:hover {color:#ffc4d5}
+.project-links {border-top-color:#c23a5f38}
+.project-card {background:var(--panel);border-color:#9eafcb2b}
+.project-card:hover,.team-card:hover {border-color:#c4496b8c}
+.teams-section,.skills-section {background:var(--brand-navy)}
+.route-map,.garage-portfolio-header {background:#102747;border-color:#bf355740}
+.route-exit:hover {background:#3d1b38}
+.timeline article::before {background:var(--brand-red);border-color:#e8809c}
+.timeline-date {color:var(--brand-red-text)}
+
+.contact-section {background:linear-gradient(120deg,#831335,#56152f);border-top-color:#dd66854d;color:#fff5f8}
+.contact-top .eyebrow,.contact-top>span,.contact-bottom p {color:#f1c5d3}
+.contact-top .status-dot {background:#ffbdcf}
+.contact-section h2>span {-webkit-text-stroke-color:#efb8c9}
+.contact-bottom {border-top-color:#efb8c94d}
+.contact-section .text-link,.contact-section .email-link {color:#fff5f8}
+.footer {background:#081a37;border-top-color:#b7274e33}
+
+.garage-hub {background:#0c2040}
+.garage-hub-header {background:#091c39eb}
+.garage-read-button {border-bottom-color:#db527880}
+.garage-read-button:hover,.garage-resume:hover {color:#ffc4d5}
+.garage-hotspot {background:#0c2243ed;border-color:var(--brand-red-border)}
+.garage-pin,.garage-hotspot>svg {color:#f0abc0}
+.garage-hotspot:hover,.garage-hotspot:focus-visible,.garage-hotspot.is-highlighted {background:#521a37;border-color:#e17695}
+.garage-leaders path {stroke:#d67591}
+.garage-leaders circle {fill:#ffc4d5;stroke:#6e2642}
+.garage-object-directory,.garage-room-bottom {background:#091c3a;border-color:#b7274e33}
+.garage-object-directory>button>svg:first-child {color:#e598af}
+.garage-object-directory>button:hover,.garage-object-directory>button:focus-visible {color:#ffc4d5}
+.garage-room-controls>button:hover {color:#ffc4d5}
+
+.topdown-screen .return-garage,.topdown-screen .drive-controls,.map-telemetry,.map-drive-message {background:#0b2142ed;border-color:#b83a5c70}
+.drive-controls>button.active,.garage-controls>button.active {color:#ffc4d5;background:#5b193747}
+.map-rpm>span,.rpm-bar>span {background:linear-gradient(90deg,#b61943 65%,#eb7396 85%,#f2bf82);box-shadow:none}
+.map-telemetry-top .status-dot {background:#ee91ad}
+.stop-dialog {background:var(--bg);border-color:#b83a5c70}
+.stop-header,.stop-bottom {background:#0b2142;border-color:#b83a5c44}
+.transition-screen {background:#091b3b}
+.transition-mark {border-color:#cc4a6b66;color:#efb2c4}
+.transition-line {background:#b6194326}
+.transition-line>span {background:var(--brand-red)}

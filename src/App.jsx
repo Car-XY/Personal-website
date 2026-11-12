@@ -21,7 +21,20 @@ class SceneBoundary extends Component {
 }
 
 function Brand({ onClick, compact = false }) {
-  return <button className="brand" onClick={onClick} aria-label="Cary Li home"><span className="brand-symbol">c</span><span>CAR<span className="brand-dash">—</span>XY{!compact&&<small>CARY LI’S PERSONAL GARAGE</small>}</span></button>;
+  return <button className={`brand${compact?' brand-compact':''}`} onClick={onClick} aria-label="Cary Li home">
+    <span className="brand-mark" aria-hidden="true"><svg viewBox="0 0 100 116" focusable="false">
+      <path d="M50 2 62 27 74 22 69 47 83 35 87 43 98 41 91 57 99 61 75 78 79 91 54 87 53 113H47L46 87 21 91 25 78 1 61 9 57 2 41 13 43 17 35 31 47 26 22 38 27Z" fill="#bd2048"/>
+      <path d="M50 2V82L31 47 26 22 38 27Z" fill="#a91c41"/>
+      <path d="M50 2 62 27 74 22 69 47 50 82Z" fill="#d3375d"/>
+      <path d="M2 41 13 43 17 35 31 47 50 82 25 78 1 61 9 57Z" fill="#bf294c"/>
+      <path d="M1 61 50 82 46 87 21 91 25 78Z" fill="#d43158"/>
+      <path d="M69 47 83 35 87 43 98 41 50 82Z" fill="#c92b52"/>
+      <path d="M98 41 91 57 99 61 50 82Z" fill="#a0163c"/>
+      <path d="M99 61 75 78 79 91 54 87 50 82Z" fill="#861536"/>
+      <path d="M50 82 54 87 53 113H50Z" fill="#d3375d"/>
+    </svg></span>
+    <span className="brand-wordmark">CAR<span className="brand-dash">—</span>XY{!compact&&<small>CARY LI’S PERSONAL GARAGE</small>}</span>
+  </button>;
 }
 
 function OntarioShield({ small = false }) {

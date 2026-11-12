@@ -5,5 +5,6 @@ import './styles.css';
 import './topdown.css';
 import './garage.css';
 import './portfolio.css';
+import './theme.css';
 
 createRoot(document.getElementById('root')).render(<App />);

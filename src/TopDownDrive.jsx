@@ -43,7 +43,6 @@ export function CarSprite({ turning = false, turnSide = 'right', speed = 0, revv
       <line x1="-27" y1="66" x2="-27" y2={100+speed*.35}/><line x1="27" y1="66" x2="27" y2={100+speed*.35}/>
       <line x1="-35" y1="77" x2="-35" y2={94+speed*.25} strokeWidth=".8"/><line x1="35" y1="77" x2="35" y2={94+speed*.25} strokeWidth=".8"/>
     </g>}
-    <ellipse className="map-car-shadow" cx="3" cy="5" rx="34" ry="66" fill="#071018" opacity=".4"/>
     <ExhaustJets intensity={intensity} progress={revProgress}/>
     <image data-feature="body" href={CAR_SPRITE.image} x="-34" y="-64" width="68" height="128"/>
     <g fill="none" stroke="#718eab" strokeWidth=".4" opacity=".65">
