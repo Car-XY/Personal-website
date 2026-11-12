@@ -5,7 +5,7 @@ import { addCarDetails, disposeSceneResources } from '../src/car-details.js';
 import {NodeIO} from '@gltf-transform/core';
 import {KHRDracoMeshCompression} from '@gltf-transform/extensions';
 import draco from 'draco3dgltf';
-import {createCarHeadlights} from '../src/car-lights.js';
+import {createCarHeadlights,findHeadlightAnchors} from '../src/car-lights.js';
 
 test('the Car-XY coupe has a closed floor and front and rear Car-XY plates', () => {
   const text = [];
@@ -142,17 +142,41 @@ test('horn lights brighten both headlights and restore their original materials 
   const rear=new THREE.Mesh(new THREE.BoxGeometry(),source);rear.name='LightBackHighlight';
   const rearLens=new THREE.Mesh(new THREE.BoxGeometry(),glass);rearLens.name='GlassBackHighlight';
   car.add(lamp,lens,rear,rearLens);
-  const lights=createCarHeadlights(car),beams=car.children.filter(node=>node.isPointLight);
+  const lights=createCarHeadlights(car),group=car.getObjectByName('Headlight_Beams'),beams=group.children.filter(node=>node.isSpotLight);
   assert.equal(beams.length,2);
   for(let i=0;i<4;i++){
     assert.equal(lights.setActive(true),true);
     assert.ok(lamp.material.emissiveIntensity>2&&lens.material.opacity<.3);
-    assert.ok(beams.every(light=>light.intensity>0&&light.position.z>2));
-    assert.equal(lights.setActive(true),false,'holding a horn does not allocate or restart the flash');
+    assert.ok(lamp.material.emissive.r>lamp.material.emissive.b*2,'flash stays warm yellow');
+    assert.ok(beams.every(light=>light.intensity>0&&light.target.position.z>light.position.z));
+    assert.equal(group.children.filter(node=>node.name==='Headlight_Cone').length,2);
+    assert.equal(lights.setActive(true),false,'holding a horn does not restart the flash');
     assert.equal(lights.setActive(false),true);
     assert.equal(lamp.material.emissiveIntensity,2);assert.equal(lens.material.opacity,.84);
+    assert.ok(lamp.material.emissive.equals(source.emissive));
     assert.ok(beams.every(light=>light.intensity===0));
   }
   assert.equal(rear.material.emissiveIntensity,2);assert.equal(rearLens.material.opacity,.84);
+  disposeSceneResources(car);
+});
+
+test('light cones start on the actual headlamp surfaces even when the car is transformed',async()=>{
+  const io=new NodeIO().registerExtensions([KHRDracoMeshCompression]).registerDependencies({'draco3d.decoder':await draco.createDecoderModule()});
+  const source=await io.read('public/models/car-xy.glb'),car=new THREE.Group();
+  const primitive=source.getRoot().listNodes().find(node=>/LightFrontHighlight/i.test(node.getName())).getMesh().listPrimitives()[0];
+  const geometry=new THREE.BufferGeometry().setAttribute('position',new THREE.BufferAttribute(primitive.getAttribute('POSITION').getArray(),3));
+  const mesh=new THREE.Mesh(geometry,new THREE.MeshBasicMaterial());mesh.name='LightFrontHighlight';car.add(mesh);
+  const before=findHeadlightAnchors(car);car.scale.setScalar(1.4);car.position.set(2,.1,-3);car.rotation.y=.8;
+  const after=findHeadlightAnchors(car);
+  assert.equal(after.length,2);
+  after.forEach((anchor,i)=>{
+    assert.ok(anchor.distanceTo(before[i])<.00001,'mounts remain in car-local coordinates');
+    assert.ok(Math.abs(anchor.x)>.4&&Math.abs(anchor.x)<.81&&anchor.y>.51&&anchor.y<.64);
+    assert.ok(anchor.z>1.65&&anchor.z<2.06);
+    const bulb=anchor.clone().sub(new THREE.Vector3(0,0,.02));
+    const positions=geometry.getAttribute('position');let distance=Infinity;
+    for(let j=0;j<positions.count;j++)distance=Math.min(distance,bulb.distanceTo(new THREE.Vector3().fromBufferAttribute(positions,j)));
+    assert.ok(distance<.00001,'each origin is attached to a real lamp vertex');
+  });
   disposeSceneResources(car);
 });

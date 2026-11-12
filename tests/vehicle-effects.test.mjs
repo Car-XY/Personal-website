@@ -12,6 +12,9 @@ const code=transformed.code
   .replaceAll('"./drive.js"',JSON.stringify(new URL('../src/drive.js',import.meta.url).href))
   .replaceAll('"./exhaust.js"',JSON.stringify(new URL('../src/exhaust.js',import.meta.url).href));
 const {CarSprite,ExhaustJet2D}=await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
+const headlightSource=await transformWithEsbuild(readFileSync('src/StaticHeadlights.jsx','utf8'),'StaticHeadlights.jsx',{loader:'jsx',jsx:'automatic'});
+const headlightCode=headlightSource.code.replaceAll('"react/jsx-runtime"',JSON.stringify(import.meta.resolve('react/jsx-runtime'))).replaceAll('"react"',JSON.stringify(import.meta.resolve('react')));
+const {default:StaticHeadlights}=await import(`data:text/javascript;base64,${Buffer.from(headlightCode).toString('base64')}`);
 const render=props=>renderToStaticMarkup(createElement('svg',null,createElement(CarSprite,props)));
 const attributes=tag=>Object.fromEntries([...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map(([,key,value])=>[key,value]));
 
@@ -55,7 +58,18 @@ test('horn beams only appear while honking and point ahead of both headlights',(
   assert.doesNotMatch(render({honking:false}),/data-effect="horn-headlights"/);
   const svg=render({honking:true});
   assert.match(svg,/data-effect="horn-headlights"/);
-  const halos=[...svg.matchAll(/<ellipse\b[^>]*cy="-50"[^>]*>/g)].map(match=>attributes(match[0]));
-  assert.equal(halos.length,2);assert.deepEqual(halos.map(halo=>Number(halo.cx)),[-20,20]);
+  assert.match(svg,/data-light-cone="left"/);assert.match(svg,/data-light-cone="right"/);
+  assert.match(svg,/stop-color="#ffe09a"/);
   assert.doesNotMatch(render({honking:false}),/data-effect="horn-headlights"/);
+});
+
+test('static headlights use a projected yellow cone and omit the occluded far lamp',()=>{
+  assert.equal(renderToStaticMarkup(createElement(StaticHeadlights,{honking:false})), '');
+  for(const view of ['hero','garage','mobile']){
+    const svg=renderToStaticMarkup(createElement(StaticHeadlights,{honking:true,view}));
+    assert.doesNotMatch(svg,/<(?:circle|ellipse)\b/);
+    assert.equal([...svg.matchAll(/data-light-cone=/g)].length,1);
+    assert.match(svg,/gradientUnits="userSpaceOnUse"/);assert.match(svg,/stop-color="#ffd36b"/);
+    assert.match(svg,/<feGaussianBlur/);
+  }
 });
