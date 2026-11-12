@@ -23,9 +23,9 @@ export function addCarDetails(car) {
     });
     if(object.isMesh&&/Windscreen|Doors[._ ]?001/i.test(object.name)){
       const clearGlass=materials.map(material=>{
-        const glass=material.clone();glass.color.set('#93b0c2');
-        glass.transparent=true;glass.opacity=.22;glass.metalness=.02;glass.roughness=.12;
-        glass.envMapIntensity=.3;glass.depthWrite=false;return glass;
+        const glass=material.clone();glass.color.set('#243642');
+        glass.transparent=true;glass.opacity=.12;glass.metalness=0;glass.roughness=.18;
+        glass.envMapIntensity=.15;glass.depthWrite=false;return glass;
       });
       object.material=Array.isArray(object.material)?clearGlass:clearGlass[0];
       object.castShadow=false;

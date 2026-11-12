@@ -4,8 +4,8 @@ import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js'
 export function createCarInterior() {
   const cabin=new THREE.Group();cabin.name='Cabin_Interior';
   const material=(color,roughness=.8,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
-  const leather=material('#272e35'),padding=material('#59616a'),carpet=material('#171e25',1);
-  const dashboard=material('#303943'),silver=material('#a6b1ba',.35,.65),black=material('#0a1017');
+  const leather=material('#151e28'),padding=material('#3c4650'),carpet=material('#171e25',1);
+  const dashboard=material('#222d38'),silver=material('#a6b1ba',.35,.65),black=material('#0a1017');
   const screen=new THREE.MeshStandardMaterial({color:'#5e9fc7',emissive:'#3e7aa8',emissiveIntensity:.3,roughness:.4,side:THREE.DoubleSide});
   const shapes=new Map();
   function rounded(name,size,position,mat=leather,parent=cabin,radius=.035) {
@@ -81,7 +81,7 @@ export function createCarInterior() {
   }
 
   // Positive X is the driver's left when the model faces forward along +Z.
-  const wheel=new THREE.Group();wheel.name='Interior_SteeringWheel';wheel.position.set(.35,.765,.425);wheel.rotation.x=-.22;cabin.add(wheel);
+  const wheel=new THREE.Group();wheel.name='Interior_SteeringWheel';wheel.position.set(.35,.83,.58);wheel.rotation.x=-.22;cabin.add(wheel);
   const rimPoints=Array.from({length:48},(_,i)=>{
     const angle=i/48*Math.PI*2;
     return new THREE.Vector3(Math.cos(angle)*.13,Math.max(-.104,Math.sin(angle)*.13),0);
