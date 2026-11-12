@@ -19,7 +19,7 @@ export function createCarHeadlights(car) {
   });
   car.traverse(mesh=>(Array.isArray(mesh.material)?mesh.material:[mesh.material]).forEach(material=>originals.delete(material)));
   originals.forEach(material=>material.dispose());
-  const warm=new THREE.Color('#ffb62e');
+  const warm=new THREE.Color('#ffcf00');
   let active=false;
   return {
     setActive(next){
