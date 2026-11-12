@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {createCarInterior} from './car-interior.js';
 
 export function disposeSceneResources(root, extraTextures = []) {
   const geometries=new Set(),materials=new Set(),textures=new Set(extraTextures);
@@ -20,16 +21,19 @@ export function addCarDetails(car) {
       if(!material||!/BodyMaterial|RoofCanvas|CarbonFibre/i.test(material.name))return;
       material.side=THREE.DoubleSide;material.needsUpdate=true;
     });
+    if(object.isMesh&&/Windscreen|Doors[._ ]?001/i.test(object.name)){
+      const clearGlass=materials.map(material=>{
+        const glass=material.clone();glass.color.set('#93b0c2');
+        glass.transparent=true;glass.opacity=.22;glass.metalness=.02;glass.roughness=.12;
+        glass.envMapIntensity=.3;glass.depthWrite=false;return glass;
+      });
+      object.material=Array.isArray(object.material)?clearGlass:clearGlass[0];
+      object.castShadow=false;
+    }
   });
   // The source model is about 4.4 m long, centred on X/Z, with Y up.
   const trim = new THREE.MeshStandardMaterial({ color: '#111820', roughness: .82, metalness: .15 });
-  const leather = new THREE.MeshStandardMaterial({ color: '#1a222c', roughness: .9 });
   const details = new THREE.Group(); details.name = 'CarXY_InteriorAndUnderbody';
-  function solid(name, size, position, material = trim) {
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), material);
-    mesh.name = name; mesh.position.set(...position);
-    mesh.castShadow = true; mesh.receiveShadow = true; details.add(mesh); return mesh;
-  }
   // Follow the tapered nose and tail rather than exposing rectangular corners
   // through the bumper openings. Keep the closure above the lower body trim.
   const footprint=[[-.53,1.83],[.53,1.83],[.70,1.35],[.73,.65],[.73,-1.35],[.55,-1.84],[-.55,-1.84],[-.73,-1.35],[-.73,.65],[-.70,1.35]];
@@ -37,17 +41,7 @@ export function addCarDetails(car) {
   const underbody=new THREE.Mesh(new THREE.ExtrudeGeometry(outline,{depth:.055,bevelEnabled:false}),trim);
   underbody.name='Sealed_Underbody';underbody.rotation.x=-Math.PI/2;underbody.position.y=.14;
   underbody.castShadow=true;underbody.receiveShadow=true;details.add(underbody);
-  solid('Cabin_Floor', [1.4,.1,1.5], [0,.48,-.05]);
-  solid('Rear_Cabin_Bulkhead', [1.1,.42,.1], [0,.67,-.72]);
-  solid('Dashboard', [1.22,.14,.32], [0,.71,.48]);
-  [-.38,.38].forEach((x,i) => {
-    solid(`Seat_${i+1}_Cushion`, [.42,.13,.5], [x,.6,-.2], leather);
-    const back = solid(`Seat_${i+1}_Back`, [.43,.48,.12], [x,.85,-.45], leather);
-    back.rotation.x = -.15;
-    solid(`Seat_${i+1}_Headrest`, [.26,.16,.12], [x,1.05,-.48], leather);
-  });
-  const wheel = new THREE.Mesh(new THREE.TorusGeometry(.14,.025,8,24), trim);
-  wheel.name = 'Interior_SteeringWheel'; wheel.position.set(-.4,.84,.23); wheel.rotation.x = -.35; details.add(wheel);
+  details.add(createCarInterior());
 
   const plateCanvas = document.createElement('canvas'); plateCanvas.width = 768; plateCanvas.height = 220;
   const ctx = plateCanvas.getContext('2d');

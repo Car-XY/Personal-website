@@ -90,3 +90,29 @@ test('both original door panels remain visible from inside and outside the cabin
   assert.equal(glass.material.side,THREE.FrontSide,'glass keeps its existing transparency rendering');
   disposeSceneResources(car);
 });
+
+test('cabin windows reveal the interior without changing shared headlamp glass',()=>{
+  globalThis.document={createElement:()=>({getContext:()=>({fillRect(){},strokeRect(){},fillText(){}})})};
+  const car=new THREE.Group(),glass=new THREE.MeshStandardMaterial({transparent:true,opacity:.84});
+  const windshield=new THREE.Mesh(new THREE.PlaneGeometry(),glass);windshield.name='o_Windscreen(Front)_Plane023';windshield.castShadow=true;
+  const lamp=new THREE.Mesh(new THREE.PlaneGeometry(),glass);lamp.name='o_GlassFrontHighlight_Plane007';car.add(windshield,lamp);
+  const details=addCarDetails(car);car.updateMatrixWorld(true);
+  assert.notEqual(windshield.material,glass);
+  assert.ok(windshield.material.opacity<.35);
+  assert.equal(windshield.material.depthWrite,false);
+  assert.equal(windshield.castShadow,false,'glass must not cast an opaque shadow over the cabin');
+  assert.equal(lamp.material.opacity,.84);
+  const cabin=details.getObjectByName('Cabin_Interior'),wheel=cabin.getObjectByName('Interior_SteeringWheel');
+  const driver=cabin.getObjectByName('Driver_Seat'),passenger=cabin.getObjectByName('Passenger_Seat');
+  assert.ok(driver&&passenger&&wheel);
+  assert.ok(wheel.position.x>0&&driver.position.x>0&&passenger.position.x<0,'left-hand-drive orientation follows the model’s +Z nose');
+  assert.ok(wheel.position.z>driver.getObjectByName('Seat_Cushion').position.z);
+  assert.ok(wheel.position.z<cabin.getObjectByName('Dashboard').position.z);
+  const bounds=new THREE.Box3().setFromObject(cabin);
+  assert.ok(bounds.max.y<1.15&&bounds.min.y>.25,'seats and trim stay below the roof and above the underbody');
+  assert.ok(bounds.max.x<.83&&bounds.min.x>-.83,'door cards stay inside the body shell');
+  assert.ok(cabin.getObjectByName('Instrument_Panel')&&cabin.getObjectByName('Steering_Rim'));
+  const geometries=new Set();cabin.traverse(node=>{if(node.geometry)geometries.add(node.geometry);});
+  assert.ok([...geometries].reduce((sum,g)=>sum+g.getAttribute('position').count,0)<25000,'cabin detail keeps the scene lightweight');
+  disposeSceneResources(car);
+});
