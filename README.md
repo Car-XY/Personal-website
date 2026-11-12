@@ -1,40 +1,37 @@
-# CAR—XY · Cary Li
+# CAR-XY | Cary Li
 
-A React and Three.js portfolio: a dedicated landing page, an interactive workshop with a navy Car-XY sports car, a top-down Ontario highway ride, and a complete readable portfolio.
+Hey, I’m Cary. This is my portfolio, by way of a garage and a stretch of the 401. I built it with React and Three.js to show what I’m working on, from web apps to helping a driverless race car tell its cones apart.
 
-## Run locally
+## Take a look around
 
-Requires Node.js 20.19+ or 22.12+.
+- **Test Drive Car-XY:** hop in and pick a green exit sign once you’re up to speed. Each exit opens a section of my portfolio. **Back on the road** takes you up the on-ramp.
+- **Enter the Garage:** the workbench has my projects, the racing rack has my design teams, and the other stops are marked around the room. Hit **Read portfolio** if you want everything on one page.
+- **Try the car:** drag it on the home page to look around. Press **R** to rev, **H** to honk, and **M** to toggle sound. **Esc** closes a portfolio stop.
+
+The home page and garage try 3D first. If the scene fails or takes more than 10 seconds, they switch to a still image. Reduced motion, data saver, and `?view=static` start there too. You can also switch views on the page. The portfolio works without WebGL, and the car stays quiet until you interact with the page. Sound stops when the tab is hidden.
+
+## Run it locally
+
+Use Node.js 20.19+ on the 20.x line, or 22.12 or later.
 
 ```sh
-npm install
+npm ci
 npm run dev
 ```
 
-```sh
-npm test
-npm run build
-npm run preview
-```
+Run `npm test` for the tests. Use `npm run build` to build the site and `npm run preview` to serve that build locally.
 
-## Explore
+## Where to make changes
 
-- **Landing page:** choose Enter the Garage or Test Drive Car-XY. Portfolio sections mount only after a mode is chosen.
-- **Test drive:** a faded ignition recording, followed by acceleration to 180 km/h in a flat 2D map. Manual cruising revs briefly raise the speedometer and world speed to 206 km/h before settling to 180, following the audio playback position.
-- **Green exit signs:** reveal a straight shared off-ramp with an open highway junction. The car takes the ramp before Projects, Design Teams, Journey, Skills, or Contact opens in an accessible native dialog.
-- **Back on the road:** play the faded engine-start recording once, drive forward along a separate on-ramp, then settle into the steady cruise recording.
-- **Highway scenery:** evergreen trees and lane markings use one shared world offset. At 180 km/h the map moves at 1,120 SVG units/second, calibrated against the car sprite with a 0.8 presentation scale. Wind trails follow the car.
-- **Garage:** an enclosed industrial workshop with a fixed perspective camera, steel mezzanine, brick walls, fluorescent fixtures, neon tools, and a marked metal service bay. Open Projects at the workbench, Design Teams at the racing rack, Journey at the story wall, Skills at the tool chest, and Contact at the communications station. Car-XY starts a test drive. Labels and an accessible directory support keyboard and touch navigation.
-- **Read portfolio:** show all content without driving or requiring WebGL. Garage panels return to the room; highway panels return via the on-ramp.
-- **R:** rev the engine. **H:** honk. **M:** toggle sound. **Escape:** close an exit.
-- **Drag the landing-page car:** orbit the unbranded 3D model, including Car-XY plates, a sealed underside, and a basic cabin.
+| What | Where |
+| --- | --- |
+| Projects, links, and skills | `src/data.js` |
+| About, design teams, contact, and navigation | `src/App.jsx` |
+| Highway drawing and ramp geometry | `src/TopDownDrive.jsx`, `src/drive.js` |
+| Engine and horn playback | `src/audio.js` |
+| Garage and its 3D scene | `src/GarageHub.jsx`, `src/GarageRoom.jsx` |
+| Landing page car and model details | `src/Scene.jsx`, `src/car-details.js` |
 
-The site respects reduced-motion preferences, stops audio when hidden, and keeps all portfolio content accessible if WebGL is unavailable. Audio starts only after a user gesture. All engine clips, the model, and its decoder are served locally.
+The speed bump (180 to 206 km/h) and exhaust both follow the rev clip’s playback position. That way they stop together if the clip is cut short. At 180 km/h, the road scrolls at 1,120 SVG units per second, using 80% of the car sprite’s scale. The markings and scenery share that offset so they wrap without drifting apart.
 
-Content lives in `src/data.js` and `src/App.jsx`; road motion and ramp geometry in `src/drive.js`; recorded sound in `src/audio.js`; 2D driving in `src/TopDownDrive.jsx`; the garage interface and room in `src/GarageHub.jsx` and `src/GarageRoom.jsx`; the landing car viewer in `src/Scene.jsx`; model repairs in `src/car-details.js`.
-
-Model optimization is reproducible with `node scripts/optimize-model.mjs` after placing the original model at `tmp/audi-original.glb`.
-
-The hero and garage load 3D immediately with a quiet loading indicator. Static PNG frames appear only after a model failure or ten-second timeout, or when selected with the view control. Reduced-motion, data-saving, and `?view=static` visits use the static view. Navigation remains available while the scene loads.
-
-See [ASSETS.md](ASSETS.md) for source attribution and third-party media notes. The Sites deployment is private to the owner.
+The Sites deployment is private. The model, decoder, and audio files are served locally. See [ASSETS.md](ASSETS.md) for credits and how to rebuild the model and audio.
