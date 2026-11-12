@@ -127,6 +127,16 @@ body {min-width:0}
   .stop-scroll .availability-line {font-size:13px}
   .stop-scroll .contact-section h2 {font-size:50px}
 }
+.poster-headlights {position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
+.poster-headlights-hero {inset:20px 0 80px;height:calc(100% - 100px)}
+.poster-headlights-mobile {display:none}
+@media(max-width:700px) and (orientation:portrait) {
+  .poster-headlights-garage {display:none}
+  .poster-headlights-mobile {display:block}
+}
+@media(max-width:700px) {
+  .poster-headlights-hero {bottom:65px;height:calc(100% - 85px)}
+}
 @media(prefers-reduced-motion:reduce) {
   .hero-static-exhaust {display:none}
   .car-poster,.car-stage .car-scene,.garage-three-room,.garage-room-backup,.supplied-art img {transition:none}

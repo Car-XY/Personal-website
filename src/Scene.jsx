@@ -6,11 +6,12 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { addCarDetails, disposeSceneResources } from './car-details.js';
 import { createExhaustFlames } from './exhaust-3d.js';
+import { createCarHeadlights } from './car-lights.js';
 
-export default function Scene({ onReady, onError, onSnapshot, onExhaustLayout, revving=false, revProgress=0 }) {
+export default function Scene({ onReady, onError, onSnapshot, onExhaustLayout, revving=false, revProgress=0, honking=false }) {
   const host = useRef(null);
-  const callbacks = useRef({ onReady, onError, onSnapshot, onExhaustLayout, revving, revProgress });
-  callbacks.current = { onReady, onError, onSnapshot, onExhaustLayout, revving, revProgress };
+  const callbacks = useRef({ onReady, onError, onSnapshot, onExhaustLayout, revving, revProgress, honking });
+  callbacks.current = { onReady, onError, onSnapshot, onExhaustLayout, revving, revProgress, honking };
 
   useEffect(() => {
     const container = host.current;
@@ -27,7 +28,7 @@ export default function Scene({ onReady, onError, onSnapshot, onExhaustLayout, r
     renderer.domElement.addEventListener('webglcontextlost', contextLost);
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 600);
-    let controls, car, exhaust, disposed = false, frame, announced=false, snapshotSent=false, layoutSignature='',intensitySignature='',elapsed=0,viewportWidth=1,viewportHeight=1;
+    let controls, car, exhaust, headlights, disposed = false, frame, announced=false, snapshotSent=false, layoutSignature='',intensitySignature='',elapsed=0,viewportWidth=1,viewportHeight=1;
     const reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
     const originalTextures = new Set();
     const clock = new THREE.Clock();
@@ -88,6 +89,7 @@ export default function Scene({ onReady, onError, onSnapshot, onExhaustLayout, r
           });
         });
         addCarDetails(car);
+        headlights=createCarHeadlights(car);
         scene.add(car);
         exhaust=createExhaustFlames(car);
       }, undefined, () => { if(!disposed)callbacks.current.onError?.(); });
@@ -107,6 +109,7 @@ export default function Scene({ onReady, onError, onSnapshot, onExhaustLayout, r
       const dt = Math.min(clock.getDelta(), 0.05);
       elapsed+=dt;
       controls?.update();
+      if(headlights?.setActive(callbacks.current.honking))container.dataset.headlights=callbacks.current.honking?'high':'low';
       const intensity=exhaust?.update({active:callbacks.current.revving,progress:callbacks.current.revProgress,time:elapsed,camera,viewportHeight:viewportHeight*renderer.getPixelRatio(),reducedMotion:reduce.matches})||0;
       const nextIntensity=intensity.toFixed(3);
       if(nextIntensity!==intensitySignature){intensitySignature=nextIntensity;container.dataset.exhaustIntensity=nextIntensity;}

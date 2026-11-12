@@ -5,6 +5,7 @@ import { addCarDetails, disposeSceneResources } from '../src/car-details.js';
 import {NodeIO} from '@gltf-transform/core';
 import {KHRDracoMeshCompression} from '@gltf-transform/extensions';
 import draco from 'draco3dgltf';
+import {createCarHeadlights} from '../src/car-lights.js';
 
 test('the Car-XY coupe has a closed floor and front and rear Car-XY plates', () => {
   const text = [];
@@ -114,5 +115,44 @@ test('cabin windows reveal the interior without changing shared headlamp glass',
   assert.ok(cabin.getObjectByName('Instrument_Panel')&&cabin.getObjectByName('Steering_Rim'));
   const geometries=new Set();cabin.traverse(node=>{if(node.geometry)geometries.add(node.geometry);});
   assert.ok([...geometries].reduce((sum,g)=>sum+g.getAttribute('position').count,0)<25000,'cabin detail keeps the scene lightweight');
+  disposeSceneResources(car);
+});
+
+test('the engine stays below the bonnet and the radiator closes the see-through grille',()=>{
+  globalThis.document={createElement:()=>({getContext:()=>({fillRect(){},strokeRect(){},fillText(){}})})};
+  const car=new THREE.Group(),details=addCarDetails(car);car.updateMatrixWorld(true);
+  const engine=details.getObjectByName('Engine_Assembly'),bounds=new THREE.Box3().setFromObject(engine);
+  assert.ok(engine.getObjectByName('Left_Cylinder_Bank')&&engine.getObjectByName('Right_Cylinder_Bank'));
+  assert.ok(bounds.max.y<.76&&bounds.min.y>.2,'engine bay fits between the undertray and bonnet');
+  assert.ok(bounds.max.x<.8&&bounds.min.x>-.8,'components stay inside the wheel wells');
+  for(const x of [-.4,0,.4]){
+    const ray=new THREE.Raycaster(new THREE.Vector3(x,.5,3),new THREE.Vector3(0,0,-1));
+    assert.ok(ray.intersectObject(engine.getObjectByName('Cooling_Pack')).length,'radiator must block a view through the nose into the cabin');
+  }
+  const geometries=new Set();engine.traverse(node=>{if(node.geometry)geometries.add(node.geometry);});
+  assert.ok([...geometries].reduce((sum,g)=>sum+g.getAttribute('position').count,0)<10000);
+  disposeSceneResources(car);
+});
+
+test('horn lights brighten both headlights and restore their original materials after repeated honks',()=>{
+  const car=new THREE.Group(),source=new THREE.MeshStandardMaterial({emissive:'#d8ecff',emissiveIntensity:2});
+  const glass=new THREE.MeshStandardMaterial({transparent:true,opacity:.84});
+  const lamp=new THREE.Mesh(new THREE.BoxGeometry(),source);lamp.name='o_LightFrontHighlight_Plane008';
+  const lens=new THREE.Mesh(new THREE.BoxGeometry(),glass);lens.name='o_GlassFrontHighlight_Plane007';
+  const rear=new THREE.Mesh(new THREE.BoxGeometry(),source);rear.name='LightBackHighlight';
+  const rearLens=new THREE.Mesh(new THREE.BoxGeometry(),glass);rearLens.name='GlassBackHighlight';
+  car.add(lamp,lens,rear,rearLens);
+  const lights=createCarHeadlights(car),beams=car.children.filter(node=>node.isPointLight);
+  assert.equal(beams.length,2);
+  for(let i=0;i<4;i++){
+    assert.equal(lights.setActive(true),true);
+    assert.ok(lamp.material.emissiveIntensity>2&&lens.material.opacity<.3);
+    assert.ok(beams.every(light=>light.intensity>0&&light.position.z>2));
+    assert.equal(lights.setActive(true),false,'holding a horn does not allocate or restart the flash');
+    assert.equal(lights.setActive(false),true);
+    assert.equal(lamp.material.emissiveIntensity,2);assert.equal(lens.material.opacity,.84);
+    assert.ok(beams.every(light=>light.intensity===0));
+  }
+  assert.equal(rear.material.emissiveIntensity,2);assert.equal(rearLens.material.opacity,.84);
   disposeSceneResources(car);
 });

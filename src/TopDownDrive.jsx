@@ -32,7 +32,7 @@ function ExhaustJets({intensity,progress}) {
   return <g data-effect="rev-exhaust">{EXHAUST_X.map((x,side)=><g key={x} transform={`translate(${x} ${EXHAUST_Y})`} data-exhaust-origin={`${x},${EXHAUST_Y}`}><ExhaustJet2D intensity={intensity} progress={progress} seed={side}/></g>)}</g>;
 }
 
-export function CarSprite({ turning = false, turnSide = 'right', speed = 0, revving = false, revProgress = 0 }) {
+export function CarSprite({ turning = false, turnSide = 'right', speed = 0, revving = false, revProgress = 0, honking = false }) {
   const intensity=revving?exhaustIntensityAt(revProgress):0;
   return <g className="map-car">
     <defs>
@@ -46,6 +46,7 @@ export function CarSprite({ turning = false, turnSide = 'right', speed = 0, revv
       <line x1="-35" y1="77" x2="-35" y2={94+speed*.25} strokeWidth=".8"/><line x1="35" y1="77" x2="35" y2={94+speed*.25} strokeWidth=".8"/>
     </g>}
     <ellipse className="map-car-shadow" cx="3" cy="5" rx="34" ry="66" fill="#071018" opacity=".4"/>
+    {honking&&<g data-effect="horn-headlights" fill="#d8ecff" aria-hidden="true"><path d="M-25-50-37-117-5-117-15-50ZM15-50 5-117 37-117 25-50Z" opacity=".14"/><ellipse cx="-20" cy="-50" rx="12" ry="6" opacity=".45"/><ellipse cx="20" cy="-50" rx="12" ry="6" opacity=".45"/></g>}
     <ExhaustJets intensity={intensity} progress={revProgress}/>
     <g fill="#080e17" stroke="#243344" strokeWidth=".7"><rect x="-31.5" y="-37" width="9" height="26" rx="2.5"/><rect x="22.5" y="-37" width="9" height="26" rx="2.5"/><rect x="-32" y="23" width="10" height="27" rx="2.5"/><rect x="22" y="23" width="10" height="27" rx="2.5"/></g>
     <path data-feature="body" d="M-18-61Q-25-61-27-54L-29-37-28-14-26 4-29 20-30 40-27 55Q-25 62-18 63H18Q25 62 27 55L30 40 29 20 26 4 28-14 29-37 27-54Q25-61 18-61Q0-65-18-61Z" fill="url(#map-car-paint)" stroke="#829cb5" strokeWidth="1.1"/>
@@ -92,7 +93,7 @@ function Ramp({ ramp, name }) {
   </g>;
 }
 
-export default function TopDownDrive({ speed, branchVisible, maneuver, maneuverProgress, revving = false, revProgress = 0 }) {
+export default function TopDownDrive({ speed, branchVisible, maneuver, maneuverProgress, revving = false, revProgress = 0, honking = false }) {
   const host=useRef(null),svg=useRef(null);
   const lanes=useRef(null),trees=useRef(null),grid=useRef(null),asphalt=useRef(null);
   const currentSpeed=useRef(speed); currentSpeed.current=speed;
@@ -146,7 +147,7 @@ export default function TopDownDrive({ speed, branchVisible, maneuver, maneuverP
       <path d="M358-2000V2400" stroke="#e1c680" strokeWidth="2.5"/>
       <path className="highway-edge" data-junction={activeRamp ? entering ? 'on-ramp' : 'off-ramp' : 'closed'} d={highwayEdgePath(activeRamp)} stroke="#efedde" strokeWidth="2.5" fill="none"/>
       <rect className="highway-lane-markings" x="400" y="-2000" width="200" height="4400" fill="url(#map-lane-lines)"/>
-      <g transform={`translate(${pose.x} ${pose.y}) rotate(${pose.angle})`} data-car-pose="true"><CarSprite speed={speed} turning={maneuver==='exiting' || entering} turnSide={entering ? 'left' : 'right'} revving={revving} revProgress={revProgress}/></g>
+      <g transform={`translate(${pose.x} ${pose.y}) rotate(${pose.angle})`} data-car-pose="true"><CarSprite speed={speed} turning={maneuver==='exiting' || entering} turnSide={entering ? 'left' : 'right'} revving={revving} revProgress={revProgress} honking={honking}/></g>
     </svg>
   </div>;
 }

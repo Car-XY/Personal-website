@@ -2,6 +2,7 @@ import { Component, Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { ArrowRight, ArrowUpRight, BookOpen, CarFront, Flag, Gauge, Laptop, Map, Megaphone, Radio, Volume2, VolumeX, Wrench } from 'lucide-react';
 import { GARAGE_OBJECTS, garageDestination, layoutGarageLabels, garagePosterLayout } from './garage.js';
 import { useSceneEnhancement } from './visuals.js';
+import StaticHeadlights from './StaticHeadlights.jsx';
 
 const GarageRoom = lazy(()=>import('./GarageRoom.jsx'));
 const icons={projects:Laptop,teams:Flag,journey:Map,skills:Wrench,contact:Radio,drive:CarFront};
@@ -12,8 +13,8 @@ class RoomBoundary extends Component {
   render(){return this.state.failed?null:this.props.children;}
 }
 
-function RoomFallback() {
-  return <div className="garage-room-backup" aria-hidden="true"><picture><source media="(max-width:700px) and (orientation:portrait)" srcSet="/images/garage-poster-mobile.png" width="750" height="1200"/><img src="/images/garage-poster.png" width="1600" height="900" alt="" fetchPriority="high"/></picture></div>;
+function RoomFallback({honking}) {
+  return <div className="garage-room-backup" aria-hidden="true"><picture><source media="(max-width:700px) and (orientation:portrait)" srcSet="/images/garage-poster-mobile.png" width="750" height="1200"/><img src="/images/garage-poster.png" width="1600" height="900" alt="" fetchPriority="high"/></picture><StaticHeadlights honking={honking} view="garage"/><StaticHeadlights honking={honking} view="mobile"/></div>;
 }
 
 export default function GarageHub({brand,onStart,onSection,onReadAll,muted,onMute,onRev,onHorn,revving,honking,locked}) {
@@ -42,9 +43,9 @@ export default function GarageHub({brand,onStart,onSection,onReadAll,muted,onMut
     <div className="garage-room-intro"><h1>THE GARAGE</h1></div>
     <div ref={stage} className={`garage-room-stage ${visual.ready?'scene-ready':visual.showStatic?'scene-static':'scene-loading-room'}`} data-render-mode={visual.loading?'loading':visual.ready?'interactive':'static'} aria-busy={visual.loading}>
       <div className="garage-room-grid"/>
-      {visual.showStatic&&<RoomFallback/>}
+      {visual.showStatic&&<RoomFallback honking={honking}/>}
       {visual.loading&&<div className="scene-loading" role="status">LOADING 3D GARAGE…</div>}
-      {visual.mount&&<RoomBoundary onError={visual.onError}><Suspense fallback={null}><GarageRoom highlighted={highlighted} disabled={locked} onSelect={id=>choose(id,true)} onHover={setHighlighted} onLayout={setLayout} onReady={visual.onReady} onError={visual.onError}/></Suspense></RoomBoundary>}
+      {visual.mount&&<RoomBoundary onError={visual.onError}><Suspense fallback={null}><GarageRoom highlighted={highlighted} disabled={locked} honking={honking} onSelect={id=>choose(id,true)} onHover={setHighlighted} onLayout={setLayout} onReady={visual.onReady} onError={visual.onError}/></Suspense></RoomBoundary>}
 
       {!visual.loading&&<div className="garage-object-hotspots" aria-label="Garage objects">
         {activeLayout&&<svg className="garage-leaders" viewBox={`0 0 ${activeLayout.width} ${activeLayout.height}`} aria-hidden="true">{labels.map(label=><g key={label.id} className={highlighted===label.id?'active':''}><path d={`M${label.anchorX} ${label.anchorY}L${label.x} ${label.y}`}/><circle cx={label.anchorX} cy={label.anchorY} r="3"/></g>)}</svg>}

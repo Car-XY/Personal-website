@@ -9,6 +9,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { addCarDetails, disposeSceneResources } from './car-details.js';
 import { GARAGE_OBJECTS } from './garage.js';
+import { createCarHeadlights } from './car-lights.js';
 
 export default function GarageRoom(props) {
   const host=useRef(null),live=useRef(props);live.current=props;
@@ -111,7 +112,7 @@ export default function GarageRoom(props) {
     for(let i=0;i<2;i++){const rim=mesh(new THREE.TorusGeometry(.36,.065,8,24),steel,[-2.9,.5,-2.7+i*.65]);rim.rotation.x=.4;for(let j=0;j<5;j++){const spoke=box([.04,.67,.06],[-2.9,.5,-2.7+i*.65],steel);spoke.rotation.z=j*Math.PI/5;}}
     for(let i=0;i<4;i++){box([1.5,.13,1.1],[11.5,.1+i*.2,-3],wood);for(let j=0;j<3;j++)box([.13,.12,1.1],[11+j*.5,.2+i*.2,-3],wood);}
     const carGroup=group('drive'),draco=new DRACOLoader();draco.setDecoderPath('/draco/');const loader=new GLTFLoader();loader.setDRACOLoader(draco);
-    let disposed=false,frame,needsRender=true,carLoaded=false,announced=false;
+    let disposed=false,frame,needsRender=true,carLoaded=false,announced=false,headlights;
     loader.load('/models/car-xy.glb',gltf=>{
       if(disposed){disposeSceneResources(gltf.scene);return;}const car=gltf.scene,bounds=new THREE.Box3().setFromObject(car),size=bounds.getSize(new THREE.Vector3());car.scale.setScalar(5.1/Math.max(size.x,size.z));
       const scaled=new THREE.Box3().setFromObject(car),centre=scaled.getCenter(new THREE.Vector3());car.position.set(-centre.x,-scaled.min.y+.07,-centre.z);
@@ -121,7 +122,7 @@ export default function GarageRoom(props) {
         if(/WindscreenGlass|GlassFront|GlassBack/i.test(mat.name)){mat.color.set('#172a31');mat.transparent=true;mat.opacity=.84;mat.roughness=.14;mat.metalness=.65;}
         if(/LightFrontHighlight|FarLight/i.test(mat.name)){mat.emissive.set('#e3f4ff');mat.emissiveIntensity=2;}
         if(/LightBackHighlight/i.test(mat.name)){mat.emissive.set('#ef2424');mat.emissiveIntensity=1.2;}
-      });});addCarDetails(car);carGroup.add(car);needsRender=true;carLoaded=true;
+      });});addCarDetails(car);headlights=createCarHeadlights(car);carGroup.add(car);needsRender=true;carLoaded=true;
     },undefined,()=>{if(!disposed)live.current.onError?.();});
     const composer=new EffectComposer(renderer),bloom=new UnrealBloomPass(new THREE.Vector2(1,1),.12,.35,1.5),outputPass=new OutputPass();
     composer.addPass(new RenderPass(scene,camera));composer.addPass(bloom);composer.addPass(outputPass);
@@ -142,7 +143,7 @@ export default function GarageRoom(props) {
     const leave=()=>{pressed=null;lastHover=null;live.current.onHover?.(null);};const lost=e=>{e.preventDefault();live.current.onError?.();};const canvas=renderer.domElement;
     canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerleave',leave);canvas.addEventListener('webglcontextlost',lost);
     let selected=null;const visible=()=>{needsRender=true;};document.addEventListener('visibilitychange',visible);
-    function render(){frame=requestAnimationFrame(render);if(document.hidden)return;const next=live.current.disabled?null:live.current.highlighted;if(next!==selected){selected=next;selection.visible=!!targets.get(next);needsRender=true;}if(!needsRender)return;if(selection.visible)selection.setFromObject(targets.get(next));composer.render();needsRender=false;if(carLoaded&&!announced){announced=true;live.current.onReady?.();if(live.current.onSnapshot)live.current.onSnapshot(renderer.domElement.toDataURL('image/png'));}}render();
+    function render(){frame=requestAnimationFrame(render);if(document.hidden)return;if(headlights?.setActive(live.current.honking)){needsRender=true;container.dataset.headlights=live.current.honking?'high':'low';}const next=live.current.disabled?null:live.current.highlighted;if(next!==selected){selected=next;selection.visible=!!targets.get(next);needsRender=true;}if(!needsRender)return;if(selection.visible)selection.setFromObject(targets.get(next));composer.render();needsRender=false;if(carLoaded&&!announced){announced=true;live.current.onReady?.();if(live.current.onSnapshot)live.current.onSnapshot(renderer.domElement.toDataURL('image/png'));}}render();
     return()=>{
       disposed=true;cancelAnimationFrame(frame);observer.disconnect();draco.dispose();document.removeEventListener('visibilitychange',visible);
       canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerleave',leave);canvas.removeEventListener('webglcontextlost',lost);

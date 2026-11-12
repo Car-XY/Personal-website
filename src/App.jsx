@@ -9,6 +9,7 @@ import { garageDestination, canReturnToRoad } from './garage.js';
 import { useSceneEnhancement } from './visuals.js';
 import { exhaustIntensityAt } from './exhaust.js';
 import { CAR_POSTER } from './posters.js';
+import StaticHeadlights from './StaticHeadlights.jsx';
 
 const Scene = lazy(() => import('./Scene.jsx'));
 
@@ -67,8 +68,8 @@ function GarageHero({ onStart, onGarage, onRev, onHorn, revving, revProgress, ho
     <div className={`car-stage ${visual.ready?'scene-ready':''} ${revving?'revving':''}`} data-render-mode={visual.loading?'loading':visual.ready?'interactive':'static'} aria-busy={visual.loading}>
       <div className="garage-wall" aria-hidden="true"><span>CAR-XY</span><div className="wall-line"/><span className="bay-number">01</span></div>
       {visual.loading&&<div className="scene-loading" role="status">LOADING 3D VIEW…</div>}
-      {visual.showStatic&&<><StaticCarExhaust revving={revving} progress={revProgress}/><img className="car-poster" src="/images/car-poster.png" width={CAR_POSTER.width} height={CAR_POSTER.height} fetchPriority="high" alt="Navy Car-XY sports car viewed from the front and side"/></>}
-      {visual.mount&&<SceneBoundary onError={visual.onError}><Suspense fallback={null}><Scene revving={revving} revProgress={revProgress} onReady={visual.onReady} onError={visual.onError}/></Suspense></SceneBoundary>}
+      {visual.showStatic&&<><StaticCarExhaust revving={revving} progress={revProgress}/><img className="car-poster" src="/images/car-poster.png" width={CAR_POSTER.width} height={CAR_POSTER.height} fetchPriority="high" alt="Navy Car-XY sports car viewed from the front and side"/><StaticHeadlights honking={honking}/></>}
+      {visual.mount&&<SceneBoundary onError={visual.onError}><Suspense fallback={null}><Scene revving={revving} revProgress={revProgress} honking={honking} onReady={visual.onReady} onError={visual.onError}/></Suspense></SceneBoundary>}
       <div className="car-visual-controls">{visual.ready&&<span><Hand size={13}/> DRAG TO ROTATE</span>}<button onClick={visual.toggle} aria-pressed={visual.staticOnly}>{visual.staticOnly||visual.failed?'LOAD 3D VIEW':'USE STATIC VIEW'}</button></div>
       <div className="car-spec"><div><strong>CAR-XY</strong><span>CAR-XY · 5.2L V10 · 602 HP</span></div></div>
     </div>
@@ -189,7 +190,7 @@ function Drive({ speed, ready, activeExit, navigatingExit, maneuver, maneuverPro
   const [help, setHelp] = useState(false);
   const movingToExit = maneuver === 'exiting' || maneuver === 'returning';
   return <div className={`drive-screen topdown-screen maneuver-${maneuver}`}>
-    <TopDownDrive speed={activeExit ? 0 : speed} revving={!!rev} revProgress={revProgress} branchVisible={ready || maneuver !== 'cruising'} maneuver={maneuver} maneuverProgress={maneuverProgress} selectedExit={navigatingExit}/>
+    <TopDownDrive speed={activeExit ? 0 : speed} revving={!!rev} revProgress={revProgress} honking={honking} branchVisible={ready || maneuver !== 'cruising'} maneuver={maneuver} maneuverProgress={maneuverProgress} selectedExit={navigatingExit}/>
     <div className="drive-header"><Brand onClick={onGarage} compact/><div className="drive-location">TOP-DOWN TOUR · ONTARIO</div><button className="return-garage" onClick={onGarage}><RotateCcw size={15}/><span>RETURN TO GARAGE</span></button></div>
     <aside className={`map-directory ${ready ? 'directory-visible' : ''}`} aria-hidden={!ready} inert={!ready}>
       <div className="map-sign-heading"><OntarioShield small/><div><span>EASTBOUND</span><h2>Choose your exit.</h2></div></div>

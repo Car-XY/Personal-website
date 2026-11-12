@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {createCarInterior} from './car-interior.js';
+import {createCarEngine} from './car-engine.js';
 
 export function disposeSceneResources(root, extraTextures = []) {
   const geometries=new Set(),materials=new Set(),textures=new Set(extraTextures);
@@ -42,6 +43,7 @@ export function addCarDetails(car) {
   underbody.name='Sealed_Underbody';underbody.rotation.x=-Math.PI/2;underbody.position.y=.14;
   underbody.castShadow=true;underbody.receiveShadow=true;details.add(underbody);
   details.add(createCarInterior());
+  details.add(createCarEngine());
 
   const plateCanvas = document.createElement('canvas'); plateCanvas.width = 768; plateCanvas.height = 220;
   const ctx = plateCanvas.getContext('2d');

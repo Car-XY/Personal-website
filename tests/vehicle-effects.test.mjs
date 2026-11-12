@@ -50,3 +50,12 @@ test('reusable flame instances have isolated gradients and the sprite keeps neut
   const css=readFileSync('src/topdown.css','utf8');
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)[^\n]*\.map-exhaust-motion\{display:none\}/);
 });
+
+test('horn beams only appear while honking and point ahead of both headlights',()=>{
+  assert.doesNotMatch(render({honking:false}),/data-effect="horn-headlights"/);
+  const svg=render({honking:true});
+  assert.match(svg,/data-effect="horn-headlights"/);
+  const halos=[...svg.matchAll(/<ellipse\b[^>]*cy="-50"[^>]*>/g)].map(match=>attributes(match[0]));
+  assert.equal(halos.length,2);assert.deepEqual(halos.map(halo=>Number(halo.cx)),[-20,20]);
+  assert.doesNotMatch(render({honking:false}),/data-effect="horn-headlights"/);
+});
