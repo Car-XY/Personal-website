@@ -54,22 +54,20 @@ test('reusable flame instances have isolated gradients and the sprite keeps neut
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)[^\n]*\.map-exhaust-motion\{display:none\}/);
 });
 
-test('horn beams only appear while honking and point ahead of both headlights',()=>{
+test('honking only turns the existing headlights yellow without projecting beams',()=>{
   assert.doesNotMatch(render({honking:false}),/data-effect="horn-headlights"/);
   const svg=render({honking:true});
-  assert.match(svg,/data-effect="horn-headlights"/);
-  assert.match(svg,/data-light-cone="left"/);assert.match(svg,/data-light-cone="right"/);
-  assert.match(svg,/stop-color="#ffe09a"/);
-  assert.doesNotMatch(render({honking:false}),/data-effect="horn-headlights"/);
+  assert.match(svg,/data-feature="headlights" data-effect="horn-headlights" fill="#ffe459"/);
+  assert.doesNotMatch(svg,/data-light-cone|headlight-cone/);
 });
 
-test('static headlights use a projected yellow cone and omit the occluded far lamp',()=>{
+test('static headlight overlays follow the lamp mesh without ovals or projected beams',()=>{
   assert.equal(renderToStaticMarkup(createElement(StaticHeadlights,{honking:false})), '');
   for(const view of ['hero','garage','mobile']){
     const svg=renderToStaticMarkup(createElement(StaticHeadlights,{honking:true,view}));
-    assert.doesNotMatch(svg,/<(?:circle|ellipse)\b/);
-    assert.equal([...svg.matchAll(/data-light-cone=/g)].length,1);
-    assert.match(svg,/gradientUnits="userSpaceOnUse"/);assert.match(svg,/stop-color="#ffd36b"/);
-    assert.match(svg,/<feGaussianBlur/);
+    assert.match(svg,new RegExp('headlights-'+view+'\\.svg'));
+    const artwork=readFileSync(`public/images/headlights-${view}.svg`,'utf8');
+    assert.match(artwork,/fill="#ffe459"/);
+    assert.doesNotMatch(artwork,/<(?:circle|ellipse|linearGradient|radialGradient)\b/);
   }
 });

@@ -33,7 +33,6 @@ function ExhaustJets({intensity,progress}) {
 }
 
 export function CarSprite({ turning = false, turnSide = 'right', speed = 0, revving = false, revProgress = 0, honking = false }) {
-  const headlightId=`headlight-cone-${useId().replaceAll(':','')}`;
   const intensity=revving?exhaustIntensityAt(revProgress):0;
   return <g className="map-car">
     <defs>
@@ -41,21 +40,19 @@ export function CarSprite({ turning = false, turnSide = 'right', speed = 0, revv
       <linearGradient id="map-car-glass" x2=".25" y2="1"><stop stopColor="#9aafbd"/><stop offset=".27" stopColor="#354d60"/><stop offset="1" stopColor="#091521"/></linearGradient>
       <linearGradient id="map-car-blade" x2="1" y2=".2"><stop stopColor="#658097"/><stop offset=".45" stopColor="#c9d6df"/><stop offset="1" stopColor="#758ca0"/></linearGradient>
       <linearGradient id="car-slipstream" gradientUnits="userSpaceOnUse" x1="0" y1="64" x2="0" y2={100+speed*.35}><stop stopColor="#d9edff" stopOpacity=".75"/><stop offset="1" stopColor="#c6e3ff" stopOpacity="0"/></linearGradient>
-      <linearGradient id={headlightId} gradientUnits="userSpaceOnUse" x1="0" y1="-50" x2="0" y2="-140"><stop stopColor="#ffe09a" stopOpacity=".55"/><stop offset="1" stopColor="#ffd16a" stopOpacity="0"/></linearGradient>
     </defs>
     {speed > 45 && <g className="car-wake" data-effect="slipstream" opacity={Math.min(1,(speed-45)/135)} fill="none" stroke="url(#car-slipstream)" strokeWidth="1.5" strokeLinecap="round">
       <line x1="-27" y1="66" x2="-27" y2={100+speed*.35}/><line x1="27" y1="66" x2="27" y2={100+speed*.35}/>
       <line x1="-35" y1="77" x2="-35" y2={94+speed*.25} strokeWidth=".8"/><line x1="35" y1="77" x2="35" y2={94+speed*.25} strokeWidth=".8"/>
     </g>}
     <ellipse className="map-car-shadow" cx="3" cy="5" rx="34" ry="66" fill="#071018" opacity=".4"/>
-    {honking&&<g data-effect="horn-headlights" fill={`url(#${headlightId})`} aria-hidden="true"><path data-light-cone="left" d="M-24-50-39-140H-1L-16-50Z"/><path data-light-cone="right" d="M16-50 1-140H39L24-50Z"/></g>}
     <ExhaustJets intensity={intensity} progress={revProgress}/>
     <g fill="#080e17" stroke="#243344" strokeWidth=".7"><rect x="-31.5" y="-37" width="9" height="26" rx="2.5"/><rect x="22.5" y="-37" width="9" height="26" rx="2.5"/><rect x="-32" y="23" width="10" height="27" rx="2.5"/><rect x="22" y="23" width="10" height="27" rx="2.5"/></g>
     <path data-feature="body" d="M-18-61Q-25-61-27-54L-29-37-28-14-26 4-29 20-30 40-27 55Q-25 62-18 63H18Q25 62 27 55L30 40 29 20 26 4 28-14 29-37 27-54Q25-61 18-61Q0-65-18-61Z" fill="url(#map-car-paint)" stroke="#829cb5" strokeWidth="1.1"/>
     <path d="M-24-55Q0-60 24-55M-25 58Q0 62 25 58" fill="none" stroke="#061423" strokeWidth="3.6"/>
     <path d="M-16-51H16L21-28Q0-33-21-28Z" fill="#193b65" stroke="#7290ae" strokeWidth=".6"/>
     <path d="M-15-48-18-31M15-48 18-31" stroke="#8ba6bf" strokeWidth=".65" opacity=".6"/>
-    <g data-feature="headlights" fill="#e4f2ff"><path d="M-25-53-13-49-14-45-24-47-26-50ZM25-53 13-49 14-45 24-47 26-50Z"/><path d="M-24-44-15-43M24-44 15-43" stroke="#2c3f57" strokeWidth="1.4"/></g>
+    <g data-feature="headlights" data-effect={honking?'horn-headlights':undefined} fill={honking?'#ffe459':'#e4f2ff'}><path d="M-25-53-13-49-14-45-24-47-26-50ZM25-53 13-49 14-45 24-47 26-50Z"/><path d="M-24-44-15-43M24-44 15-43" stroke="#2c3f57" strokeWidth="1.4"/></g>
     <path d="M-27-29-24-32-20-8-19 13-23 15-26-4ZM27-29 24-32 20-8 19 13 23 15 26-4Z" fill="#0a1827" stroke="#507391" strokeWidth=".6"/>
     <g data-feature="cockpit">
       <path d="M-23-25Q0-34 23-25L17-7H-17Z" fill="url(#map-car-glass)" stroke="#849eaf" strokeWidth=".8"/>
