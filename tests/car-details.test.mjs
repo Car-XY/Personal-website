@@ -5,7 +5,7 @@ import { addCarDetails, disposeSceneResources } from '../src/car-details.js';
 import {NodeIO} from '@gltf-transform/core';
 import {KHRDracoMeshCompression} from '@gltf-transform/extensions';
 import draco from 'draco3dgltf';
-import {createCarHeadlights} from '../src/car-lights.js';
+import {createCarLights} from '../src/car-lights.js';
 
 test('the Car-XY coupe has a closed floor and front and rear Car-XY plates', () => {
   const text = [];
@@ -134,26 +134,35 @@ test('the engine stays below the bonnet and the radiator closes the see-through 
   disposeSceneResources(car);
 });
 
-test('horn lights brighten both headlights and restore their original materials after repeated honks',()=>{
+test('lamps: running lights, brake lights, indicators on the correct side, and steady headlamps',()=>{
+  globalThis.document={createElement:()=>({getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};
   const car=new THREE.Group(),source=new THREE.MeshStandardMaterial({emissive:'#d8ecff',emissiveIntensity:2});
   const glass=new THREE.MeshStandardMaterial({transparent:true,opacity:.84});
   const lamp=new THREE.Mesh(new THREE.BoxGeometry(),source);lamp.name='o_LightFrontHighlight_Plane008';
   const lens=new THREE.Mesh(new THREE.BoxGeometry(),glass);lens.name='o_GlassFrontHighlight_Plane007';
   const rear=new THREE.Mesh(new THREE.BoxGeometry(),source);rear.name='LightBackHighlight';
   const rearLens=new THREE.Mesh(new THREE.BoxGeometry(),glass);rearLens.name='GlassBackHighlight';
-  car.add(lamp,lens,rear,rearLens);
-  const lights=createCarHeadlights(car);
-  assert.equal(car.children.length,4,'horn lighting adds no projected lights or beam geometry');
-  for(let i=0;i<4;i++){
-    assert.equal(lights.setActive(true),true);
-    assert.ok(lamp.material.emissiveIntensity>2&&lens.material.opacity<.3);
-    assert.ok(lamp.material.emissive.r>lamp.material.emissive.b*2,'flash stays warm yellow');
-    assert.equal(lights.setActive(true),false,'holding a horn does not restart the flash');
-    assert.equal(lights.setActive(false),true);
-    assert.equal(lamp.material.emissiveIntensity,2);assert.equal(lens.material.opacity,.84);
-    assert.ok(lamp.material.emissive.equals(source.emissive));assert.ok(lamp.material.color.equals(source.color));
-  }
-  assert.equal(rear.material.emissiveIntensity,2);assert.equal(rearLens.material.opacity,.84);
+  const windscreen=new THREE.Mesh(new THREE.BoxGeometry(),glass);windscreen.name='Windscreen';
+  car.add(lamp,lens,rear,rearLens,windscreen);
+  const lights=createCarLights(car);
+  let lightSources=0;car.traverse(node=>{if(node.isLight)lightSources++;});
+  assert.equal(lightSources,0,'no projected lights or beams, only lit lenses and glows');
+  assert.ok(lens.material.opacity<.3&&rearLens.material.opacity<.3,'lamp covers are clear');
+  assert.equal(windscreen.material,glass,'the windscreen keeps its own glass');
+  const camera=new THREE.PerspectiveCamera();camera.position.set(0,1,-12);camera.updateMatrixWorld();
+  const {front,rear:back}=lights.lamps,step=(o,n=60)=>{for(let i=0;i<n;i++)lights.update({dt:1/60,camera,...o,time:(o.time??0)+i/60});};
+  step({time:0,signal:0,braking:false});
+  const tail=back.uniforms.uInner.value.r,head=front.uniforms.uInner.value.clone();
+  assert.ok(tail>.5,'tail lights are on while driving');assert.ok(head.r>1&&head.b>1,'headlamps are on, white');
+  assert.equal(front.uniforms.uLeft.value+front.uniforms.uRight.value<.01,true,'no indicators while cruising');
+  step({time:1,signal:0,braking:true});assert.ok(back.uniforms.uInner.value.r>tail*2.5,'brake lights are much brighter than tail lights');
+  // Left signal blinks the left (+x in model space) side only, on and off.
+  const left=[],right=[];
+  for(let i=0;i<120;i++){lights.update({time:2+i/60,dt:1/60,camera,signal:-1,braking:false});left.push(front.uniforms.uLeft.value);right.push(front.uniforms.uRight.value);}
+  assert.ok(Math.max(...left)>.95&&Math.min(...left.slice(30))<.05,'left indicator blinks');assert.ok(Math.max(...right)<.01,'right indicator stays off');
+  // Headlamps hold steady: no greeting flash, no hazards.
+  step({time:5,signal:0,braking:false},30);
+  assert.ok(front.uniforms.uInner.value.equals(head),'headlamps stay steadily on');
+  assert.ok(front.uniforms.uLeft.value<.01&&front.uniforms.uRight.value<.01,'no hazards');
   disposeSceneResources(car);
 });
-

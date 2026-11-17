@@ -1,0 +1,128 @@
+html.gate-open, html.gate-open body { overflow: hidden; }
+
+.drive-page { background: var(--sky-horizon); }
+.drive-stage { position: fixed; inset: 0; z-index: 0; background: linear-gradient(var(--sky-top), var(--sky-horizon) 55%, #c8cbc4); }
+.drive-canvas, .drive-canvas canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.drive-loading { position: absolute; left: 50%; bottom: 14vh; transform: translateX(-50%); padding: 6px 12px 4px; border-radius: 4px; background: #f4f3eee6; font: 600 14px var(--mono); color: var(--ink); white-space: nowrap; }
+.scroll-track { position: relative; z-index: 1; pointer-events: none; }
+
+.drive-header {
+  position: fixed; z-index: 20; top: 0; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 20px var(--gutter);
+}
+.drive-nav { display: flex; align-items: center; gap: clamp(12px, 2vw, 26px); }
+.sound-button { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; color: var(--ink); transition: background .2s; }
+.sound-button:hover { background: #16181b14; }
+.sound-button[aria-pressed="true"] { color: var(--sign-green); }
+
+/* Narration: a small lead-in, then one big word that types in as you scroll. */
+.narration {
+  position: fixed; z-index: 5; left: 0; right: 0; top: clamp(92px, 15vh, 150px);
+  padding: 0 var(--gutter); text-align: center; pointer-events: none;
+}
+.narration-lead { font: italic 400 clamp(19px, 1.5vw, 25px)/1.3 var(--serif); color: var(--ink-soft); }
+.narration-word { font: 800 clamp(46px, 7.4vw, 112px)/1 var(--sans); letter-spacing: -.025em; color: var(--ink); margin-top: .08em; }
+.narration .ghost { visibility: hidden; }
+.narration::before, .gate::before {
+  content: ''; position: absolute; z-index: -1; left: 50%; top: 50%; width: min(980px, 110vw); height: 150%;
+  translate: -50% -55%; background: radial-gradient(closest-side, #e9ece8b3, #e9ece84d 60%, transparent);
+  pointer-events: none;
+}
+.gate::before { top: clamp(200px, 30vh, 300px); height: 420px; }
+/* Once the drive starts, the hero line rises in after the car has merged: name first, then the intro. */
+.narration-hero > p { animation: rise .7s cubic-bezier(.2, .7, .2, 1) both; }
+.narration-hero > .narration-word { animation-delay: .12s; }
+.narration-hero > .narration-intro { animation-delay: .4s; }
+/* The intro shares the headline's soft glow instead of sitting on its own card. */
+.narration-intro {
+  max-width: 34ch; margin: 18px auto 0;
+  font: 400 clamp(17px, 1.25vw, 20px)/1.5 var(--serif); color: var(--ink);
+}
+.narration-hero::before { height: 190%; translate: -50% -50%; background: radial-gradient(closest-side, #eceee9d9, #eceee980 60%, transparent); }
+.narration-arrive .narration-word { font-size: clamp(40px, 6vw, 92px); }
+/* While a sign is on screen, the line sits top-left so it never covers the sign. */
+.narration.is-side { text-align: left; right: auto; max-width: min(46vw, 640px); top: clamp(96px, 13vh, 132px); }
+.narration.is-side .narration-word { font-size: clamp(40px, 5.4vw, 86px); }
+.narration.is-side::before { left: 30%; width: 130%; }
+
+.narration-hero > .scroll-cue { animation: fade-in .6s 1s ease both; }
+/* Sits under the intro rather than at the bottom of the screen, where the waiting car is. */
+.scroll-cue {
+  margin-top: 22px;
+  font: 600 14px var(--sans); letter-spacing: .02em; color: var(--ink-soft);
+  display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: none;
+}
+.scroll-cue::after { content: ''; width: 2px; height: 34px; background: linear-gradient(var(--ink-soft), transparent); animation: cue 1.8s ease-in-out infinite; transform-origin: top; }
+@keyframes cue { 0% { transform: scaleY(0); } 60% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
+
+/* Right-edge progress, drawn as a lane line with a tick at each sign. */
+.lane-progress {
+  position: fixed; z-index: 10; right: clamp(14px, 2vw, 30px); top: 110px; bottom: 70px; width: 4px;
+  background: repeating-linear-gradient(to bottom, #f4f3eecc 0 14px, transparent 14px 30px);
+}
+.lane-fill { position: absolute; inset: 0; background: var(--lane-yellow); transform-origin: top; transform: scaleY(0); will-change: transform; }
+.lane-tick { position: absolute; right: -8px; width: 20px; height: 20px; transform: translateY(-50%); display: grid; place-items: center; }
+.lane-tick::before { content: ''; width: 12px; height: 3px; background: #f4f3eecc; transition: background .2s, width .2s; }
+.lane-tick.passed::before { background: var(--ink); }
+.lane-tick span {
+  position: absolute; right: 26px; white-space: nowrap; padding: 5px 9px 3px; border-radius: 4px;
+  background: var(--sign-green); color: var(--reflective); font: 700 13px var(--sans);
+  opacity: 0; transform: translateX(6px); transition: opacity .2s, transform .2s; pointer-events: none;
+}
+.lane-tick:hover span, .lane-tick:focus-visible span { opacity: 1; transform: none; }
+.lane-tick:hover::before { width: 18px; background: var(--ink); }
+.lane-km { position: absolute; bottom: -36px; right: -8px; padding: 3px 6px 1px; border-radius: 3px; background: #f4f3eee0; font: 600 12px var(--mono); color: var(--ink); white-space: nowrap; }
+
+/* The intro gate: name, one line, two choices (with or without engine sound). */
+.gate { position: fixed; inset: 0; z-index: 15; display: flex; justify-content: center; padding: clamp(110px, 17vh, 170px) var(--gutter) 0; }
+.gate { transition: opacity .45s ease; }
+.gate.is-leaving { opacity: 0; pointer-events: none; }
+.gate-inner { outline: none; text-align: center; animation: rise .9s cubic-bezier(.2, .7, .2, 1) both; }
+.gate h1 { font: 800 clamp(60px, 9.5vw, 148px)/.95 var(--sans); letter-spacing: -.035em; }
+.gate p { margin-top: 12px; font: italic 400 clamp(18px, 1.5vw, 23px)/1.4 var(--serif); color: var(--ink-soft); }
+.gate-buttons { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 14px 26px; justify-content: center; align-items: center; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+@keyframes fade-in { from { opacity: 0; } }
+
+/* The ending: a guide sign with the calls to action. */
+.ending {
+  position: fixed; z-index: 12; left: 50%; bottom: clamp(16px, 4vh, 44px); translate: -50% 0;
+  width: min(560px, calc(100vw - 2 * var(--gutter)));
+  padding: 22px 26px 18px; border-radius: 12px;
+  background: var(--sign-green); color: var(--reflective);
+  box-shadow: inset 0 0 0 5px var(--sign-green), inset 0 0 0 8px var(--reflective), 0 12px 30px #0003;
+}
+.ending.is-live { opacity: 0; will-change: opacity, transform; }
+.ending.is-live:not(.is-active) { pointer-events: none; }
+.ending-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; }
+.ending .sign-button { background: var(--reflective); color: var(--sign-green); box-shadow: none; }
+.ending .sign-button:hover { background: #fff; }
+.ending-links { display: flex; gap: 22px; margin-top: 16px; padding-top: 12px; border-top: 1.5px solid #f4f3ee55; font: 600 15px var(--sans); }
+.ending-links a { text-decoration: none; opacity: .9; }
+.ending-links a:hover { opacity: 1; text-decoration: underline; text-underline-offset: 4px; }
+
+/* Static version (reduced motion, save-data, no WebGL). */
+.is-static .drive-header { position: sticky; background: var(--paper); border-bottom: 1px solid var(--rule); }
+.static-drive { padding: 40px var(--gutter) 80px; max-width: 1100px; margin: 0 auto; }
+.static-hero h1 { font: 800 clamp(48px, 8vw, 110px)/1 var(--sans); letter-spacing: -.03em; }
+.static-hero p { max-width: 34ch; margin-top: 16px; color: var(--ink-soft); }
+.static-hero img { margin-top: 28px; border-radius: 6px; }
+.static-signs { list-style: none; display: grid; gap: 56px; margin-top: 72px; }
+.static-signs li { display: grid; gap: 16px; }
+.static-signs img, .sign-slot { width: min(100%, 720px); }
+.static-drive .narration-lead strong { font: 800 1.6em var(--sans); color: var(--ink); font-style: normal; }
+.static-end { margin-top: 72px; }
+.static-end .ending { position: static; translate: none; margin-top: 20px; }
+
+@media (max-width: 700px) {
+  .hide-small { display: none; }
+  .drive-header { padding: 14px 16px; }
+  .wordmark { font-size: 18px; }
+  .wordmark-shield { width: 26px; height: 30px; }
+  .drive-header .sign-button { font-size: 14px; }
+  .narration { top: 84px; }
+  .lane-progress { top: 90px; bottom: 60px; right: 10px; }
+  .lane-km { display: none; }
+  .ending { padding: 18px 18px 14px; }
+}

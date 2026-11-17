@@ -1,10 +1,6 @@
-import React from 'react';
 import { createRoot } from 'react-dom/client';
-import App from './App.jsx';
-import './styles.css';
-import './topdown.css';
-import './garage.css';
-import './portfolio.css';
-import './theme.css';
+import DriveStory from './DriveStory.jsx';
+import './tokens.css';
+import './drive.css';
 
-createRoot(document.getElementById('root')).render(<App />);
+createRoot(document.getElementById('root')).render(<DriveStory />);

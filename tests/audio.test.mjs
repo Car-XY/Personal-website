@@ -11,99 +11,81 @@ class Recording {
   pause() { this.paused=true; }
 }
 globalThis.Audio=Recording;globalThis.document={hidden:false};globalThis.window={};
-const {DriveAudio}=await import('../src/audio.js');
+const {DriveAudio,throttleFor,IDLE_GAIN,IDLE_RATE}=await import('../src/audio.js');
 function setup(t,webAudio=true) {
   const sources=[],gain={gain:{value:0,setTargetAtTime(value){this.value=value;}},connect(){}};
   globalThis.document.hidden=false;
   globalThis.window=webAudio?{AudioContext:class {
-    currentTime=0;resume(){return Promise.resolve();}createGain(){return gain;}
+    currentTime=0;resume(){return Promise.resolve();}suspend(){return Promise.resolve();}createGain(){return gain;}
     decodeAudioData(){return Promise.resolve({recording:true});}
-    createBufferSource(){const source={playbackRate:{value:1},connect(){},start(){this.started=true;},stop(){this.stopped=true;},disconnect(){}};sources.push(source);return source;}
+    createBufferSource(){const source={playbackRate:{value:1,setTargetAtTime(value){this.value=value;}},connect(){},start(){this.started=true;},stop(){this.stopped=true;},disconnect(){}};sources.push(source);return source;}
   }}:{};
   t.mock.method(globalThis,'fetch',async()=>({ok:true,arrayBuffer:async()=>new ArrayBuffer(8)}));
   const engine=new DriveAudio();t.after(()=>engine.stop());return {engine,sources,gain};
 }
+const close=(a,b,eps=1e-6)=>assert.ok(Math.abs(a-b)<eps,`${a} != ${b}`);
+const run=(engine,speed,seconds,step=1/60)=>{for(let t=0;t<seconds;t+=step)engine.drive(speed,step);};
 
-test('recorded rev UI follows clip completion rather than a fixed timer',t=>{
-  const {engine}=setup(t,false),states=[];engine.subscribe(state=>states.push(state.revving));
-  engine.rev();const old=engine.revSample,oldToken=engine.revToken;
-  engine.rev();assert.equal(old.paused,true);engine.finishRev(oldToken);assert.equal(engine.isRevving,true);
-  engine.revSample.emit('ended');assert.equal(engine.isRevving,false);assert.equal(engine.active,false);
-  assert.deepEqual(states,[false,true,true,false]);
-  assert.equal(engine.revSample.src,'/audio/engine-rev.wav');
-  assert.equal(engine.toggleMute(),true);assert.ok(engine.clips.every(clip=>clip.muted));
-  engine.stop();assert.ok(engine.clips.every(clip=>clip.paused));
-});
-
-test('cruising reuses one real buffer with constant level and pitch at every speed',async t=>{
-  const {engine,sources,gain}=setup(t);engine.active=true;await engine.playCruise();
-  for(const speed of [0,65,100,180,180]){engine.update(speed);assert.equal(gain.gain.value,.22);}
-  engine.resume(180);await engine.playCruise();
-  assert.equal(sources.length,1);assert.equal(sources[0].loop,true);assert.equal(sources[0].buffer.recording,true);assert.equal(sources[0].playbackRate.value,1);
-  engine.toggleMute();assert.equal(gain.gain.value,0);engine.toggleMute();assert.equal(gain.gain.value,.22);
-});
-
-test('five destination returns each play ignition once, silence the hum, then restore the same source',async t=>{
-  const {engine,sources,gain}=setup(t);engine.active=true;await engine.playCruise();
-  for(let i=0;i<5;i++) {
-    engine.park();assert.equal(gain.gain.value,0);
-    engine.beginMerge();await engine.playCruise();assert.equal(engine.sample.plays,1);assert.equal(engine.sample.src,'/audio/engine-start.wav');assert.equal(engine.isRevving,false);assert.equal(gain.gain.value,0);
-    engine.update(180);engine.sample.emit('ended');await engine.playCruise();assert.equal(gain.gain.value,.22);
-  }
-  assert.equal(sources.length,1);
-});
-
-test('manual rev replaces merge ignition; stale completion cannot release its ducking',async t=>{
-  const {engine,gain}=setup(t);engine.beginMerge();await engine.playCruise();
-  const old=engine.sample;
-  engine.rev();const current=engine.revSample;
-  await engine.playCruise();
-  assert.equal(old.paused,true);old.emit('ended');assert.equal(engine.starting,false);assert.equal(gain.gain.value,0);assert.equal(engine.isRevving,true);
-  engine.toggleMute();current.emit('ended');assert.equal(gain.gain.value,0);engine.toggleMute();assert.equal(gain.gain.value,.22);
-});
-
-test('stop cancels in-flight loading and rev completion; visibility resume does not rev again',async t=>{
-  const {engine,sources,gain}=setup(t);engine.active=true;engine.rev();await engine.playCruise();const voice=engine.revSample,token=engine.revToken;
-  engine.stop();voice.emit('ended');engine.finishRev(token);assert.equal(gain.gain.value,0);assert.ok(sources[0].stopped);
-  engine.resume(100);await engine.playCruise();assert.equal(engine.isRevving,false);assert.equal(voice.plays,1);
-  const delayed=new DriveAudio();let finish;delayed.prepareCruise=()=>new Promise(resolve=>{finish=resolve;});delayed.active=true;
-  const pending=delayed.playCruise();delayed.stop();finish({recording:true});await pending;assert.equal(delayed.cruiseSource,undefined);
-  engine.stop();engine.resume(0,{parked:true});await engine.playCruise();assert.equal(gain.gain.value,0);
-});
-
-test('recording fallback loops without restarting; rejected rev recovers and has a duration fallback',async t=>{
-  const {engine}=setup(t,false);engine.active=true;await engine.playCruise();engine.resume(180);await engine.playCruise();
-  assert.equal(engine.cruise.plays,1);assert.equal(engine.cruise.loop,true);
-  const clip=engine.clip.bind(engine);engine.clip=src=>{const voice=clip(src);voice.reject=true;return voice;};
-  engine.rev();await Promise.resolve();await Promise.resolve();assert.equal(engine.isRevving,false);assert.equal(engine.cruise.volume,.22);
-  engine.clip=clip;t.mock.timers.enable({apis:['setTimeout']});engine.rev();engine.revSample.emit('loadedmetadata');t.mock.timers.tick(4300);assert.equal(engine.isRevving,false);
-});
-
-test('ignition ends before cruising; parking and garage cancel stale ignition completion',async t=>{
+test('starting the drive honks and settles into the idle hum, with no ignition or rev clip',async t=>{
   const {engine,sources,gain}=setup(t);
-  engine.start();await engine.playCruise();assert.equal(sources.length,0);assert.equal(engine.sample.plays,1);
-  engine.sample.emit('ended');await engine.playCruise();assert.equal(sources.length,1);assert.equal(gain.gain.value,.22);
-  engine.start();engine.park();engine.sample.emit('ended');await engine.playCruise();assert.equal(gain.gain.value,0);
-  engine.garage();engine.sample.emit('ended');await engine.playCruise();assert.equal(engine.active,false);assert.ok(engine.clips.every(clip=>clip.paused));
+  engine.start();await engine.playEngine();
+  assert.equal(engine.hornSample.src,'/audio/car-horn.mp3');assert.equal(engine.hornSample.plays,1);assert.equal(engine.isHonking,true);
+  assert.equal(sources.length,1);assert.equal(sources[0].loop,true);assert.equal(sources[0].buffer.recording,true);
+  close(gain.gain.value,IDLE_GAIN);close(sources[0].playbackRate.value,IDLE_RATE);
+  assert.ok(!engine.clips.some(clip=>/engine-(start|rev)/.test(clip.src)));
+  engine.hornSample.emit('ended');assert.equal(engine.isHonking,false);
 });
 
-test('trimmed manual rev progress follows the current recording and resets on completion',async t=>{
-  const {engine,gain}=setup(t);t.mock.timers.enable({apis:['setTimeout']});
-  engine.start();engine.rev();engine.revSample.duration=6.15;engine.revSample.emit('loadedmetadata');
-  engine.sample.emit('ended');await engine.playCruise();assert.equal(engine.starting,false);assert.equal(gain.gain.value,0);
-  engine.revSample.currentTime=3.075;assert.equal(engine.getRevProgress(),.5);
-  t.mock.timers.tick(6150);assert.equal(engine.isRevving,true);
-  engine.revSample.emit('ended');assert.equal(engine.isRevving,false);assert.equal(gain.gain.value,.22);
-  assert.equal(engine.getRevProgress(),0);engine.rev();assert.equal(engine.getRevProgress(),0);
+test('turning sound on later starts the engine without a honk',async t=>{
+  const {engine,sources}=setup(t);engine.start({horn:false});await engine.playEngine();
+  assert.equal(engine.hornSample.plays,0);assert.equal(sources.length,1);
 });
 
-test('re-entering during ignition cancels the old voice; horn obeys mute, replays, and stop',async t=>{
-  const {engine}=setup(t);engine.beginMerge();const old=engine.sample;engine.beginMerge();
-  old.emit('ended');assert.equal(old.paused,true);assert.equal(engine.starting,true);
-  engine.horn();const horn=engine.hornSample;assert.equal(horn.src,'/audio/car-horn.mp3');assert.equal(horn.plays,1);
-  engine.horn();horn.emit('ended');assert.equal(horn.paused,true);assert.equal(engine.isHonking,true);
-  engine.toggleMute();assert.equal(engine.hornSample.muted,true);engine.hornSample.emit('ended');assert.equal(engine.isHonking,false);
-  engine.stop();assert.ok(engine.clips.every(clip=>clip.paused));assert.equal(engine.starting,false);
+test('scrolling revs the engine up; slowing fades it back to the idle hum, never to silence',async t=>{
+  const {engine,sources,gain}=setup(t);engine.start({horn:false});await engine.playEngine();
+  run(engine,120,1.5);
+  const revved=gain.gain.value;assert.ok(revved>.25,`revved gain ${revved}`);assert.ok(sources[0].playbackRate.value>1.15);
+  // Rising is quick, falling is gradual: half a second after stopping it is still well above idle.
+  run(engine,0,.5);assert.ok(gain.gain.value>IDLE_GAIN+(revved-IDLE_GAIN)*.4,'fades out gradually');
+  run(engine,0,6);close(gain.gain.value,IDLE_GAIN,.003);close(sources[0].playbackRate.value,IDLE_RATE,.01);
+  assert.ok(gain.gain.value>0,'the stopped car still hums');
+  // Faster scrolling is louder than slower scrolling.
+  run(engine,20,3);const slow=gain.gain.value;run(engine,90,3);assert.ok(gain.gain.value>slow);
+  assert.equal(sources.length,1,'one continuous loop, never restarted');
+});
+
+test('throttle is monotone in speed and bounded',()=>{
+  let previous=-1;for(const speed of [0,5,15,40,80,200,1000]){const v=throttleFor(speed);assert.ok(v>=previous&&v>=0&&v<=1);previous=v;}
+  assert.equal(throttleFor(0),0);assert.equal(throttleFor(NaN),0);
+});
+
+test('mute silences the engine and horn; unmute restores the current level',async t=>{
+  const {engine,gain}=setup(t);engine.start();await engine.playEngine();run(engine,60,2);const level=gain.gain.value;
+  assert.equal(engine.toggleMute(),true);assert.equal(gain.gain.value,0);assert.ok(engine.clips.every(clip=>clip.muted));
+  engine.horn();assert.equal(engine.hornSample.muted,true);
+  engine.toggleMute();close(gain.gain.value,level,.003);
+});
+
+test('stop cancels in-flight loading and silences everything; a hidden tab pauses and resumes',async t=>{
+  const {engine,sources,gain}=setup(t);engine.start();await engine.playEngine();
+  engine.stop();assert.equal(gain.gain.value,0);assert.ok(sources[0].stopped);assert.ok(engine.clips.every(clip=>clip.paused));
+  const delayed=new DriveAudio();let finish;delayed.prepareEngine=()=>new Promise(resolve=>{finish=resolve;});delayed.active=true;
+  const pending=delayed.playEngine();delayed.stop();finish({recording:true});await pending;assert.equal(delayed.engineSource,undefined);
+  engine.start({horn:false});await engine.playEngine();engine.suspend();engine.wake();await engine.playEngine();assert.equal(sources.length,2);
+});
+
+test('without Web Audio the recording loops on an audio element, following the same level and pitch',async t=>{
+  const {engine}=setup(t,false);engine.start({horn:false});await engine.playEngine();await engine.playEngine();
+  assert.equal(engine.engine.plays,1);assert.equal(engine.engine.loop,true);close(engine.engine.volume,IDLE_GAIN);
+  run(engine,120,2);assert.ok(engine.engine.volume>.25);assert.ok(engine.engine.playbackRate>1.15);
+});
+
+test('the horn replays cleanly, has a duration fallback, and recovers when playback is blocked',async t=>{
+  const {engine}=setup(t,false);engine.horn();const first=engine.hornSample;engine.horn();
+  first.emit('ended');assert.equal(first.paused,true);assert.equal(engine.isHonking,true);
+  const clip=engine.clip.bind(engine);engine.clip=src=>{const voice=clip(src);voice.reject=true;return voice;};
+  engine.horn();await Promise.resolve();await Promise.resolve();assert.equal(engine.isHonking,false);
+  engine.clip=clip;t.mock.timers.enable({apis:['setTimeout']});engine.horn();engine.hornSample.emit('loadedmetadata');t.mock.timers.tick(4300);assert.equal(engine.isHonking,false);
 });
 
 function pcmWave(file) {

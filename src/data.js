@@ -52,3 +52,29 @@ export const skills = [
   {name:'Web & app development',number:'02',items:['TypeScript / JavaScript','React / Next.js','Three.js','Flask','SQLite / SQL','Electron','HTML / CSS']},
   {name:'Engineering & algorithms',number:'03',items:['C++ / C','Java / C#','Pathfinding','Energy simulation','Git']},
 ];
+
+// Your photo appears on the portfolio page only (public/images/cary.jpg, 3:2 landscape). Set ready: false to show the placeholder instead.
+export const portrait = { src: '/images/cary.jpg', alt: 'Cary Li in a yellow hard hat and F!rosh shirt, taking a selfie on U of T’s front campus', ready: true, width: 1520, height: 1013 };
+
+export const about = 'I’m a first-year Engineering Science student at the University of Toronto’s St. George campus, aiming for Robotics in third year. I build systems where software meets something physical: a room, a race car, a person’s fingers.';
+
+export const teams = [
+  {
+    name: 'U of T Formula Racing', group: 'Formula SAE · Driverless', href: 'https://fsaeutoronto.ca',
+    image: { src: '/images/teams/utfr-lidar.webp', width: 1200, height: 675, alt: 'LiDAR point cloud with blue and yellow cone detections along a race track' },
+    role: 'I’m the project lead for a LiDAR-based machine learning model that detects cones for UTFR’s Classical Perception team.',
+    stack: ['ROS 2', 'Foxglove', 'C++', 'LiDAR', 'Neural networks'],
+  },
+  {
+    name: 'Blue Sky Solar Racing', group: 'Solar vehicles · Race strategy', href: 'https://www.blueskysolar.org/', sign: 'bluesky',
+    role: 'I’m a junior member of the Energy Simulation team within Blue Sky Solar Racing’s Strategy division, building an energy simulator for the Gen 13 car.',
+    stack: ['Energy simulation', 'Race strategy'],
+  },
+];
+
+export const journey = [
+  { when: 'Sep 2026 – present', title: 'University of Toronto', subtitle: 'B.A.Sc. · Engineering Science', text: 'First-year Engineering Science student. Software work with U of T Formula Racing and Blue Sky Solar Racing.' },
+  { when: 'Mar 2025 – present', title: 'The Fundamental Why', subtitle: 'Founder · Physics & philosophy podcast', text: 'Conversations with STEM researchers, physics students, and curious minds about how the world works, and why.', link: { label: 'Watch The Fundamental Why', href: 'https://www.youtube.com/@TheFundamentalWhy' }, stats: [['7', 'episodes'], ['2.1k+', 'subscribers'], ['14.1k+', 'views']] },
+  { when: 'Sep 2024 – Jun 2026', title: 'Champion Swim School', subtitle: 'Competitive swim instructor', text: 'Taught all four strokes to swimmers aged 6–16. Named Instructor of the Month twice, among a team of 30.' },
+  { when: '2022 – 2026', title: 'Dr. G.W. Williams Secondary School', subtitle: 'IB Diploma · 41/45', text: 'UofT National Book Award, Pay It Forward Scholarship, and DECA ICDC qualifier.' },
+];

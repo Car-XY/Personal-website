@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,statSync} from 'node:fs';
-import {projects,skills,availability,currently} from '../src/data.js';
+import {projects,skills,availability,currently,journey,portrait} from '../src/data.js';
 import {prefersStaticVisuals,useSceneEnhancement} from '../src/visuals.js';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
@@ -49,8 +49,7 @@ test('Cary’s supplied wording is retained and non-link skills have no arrows',
   assert.equal(availability,"I'm looking for Summer 2027 internships! (or just a good conversation about building things😉)");
   assert.equal(currently,"Currently developing a lightweight CNN that uses LiDAR intensity values to identify cone colour and position.");
   assert.ok(skills.every(skill=>skill.items.every(item=>!item.includes('↗'))));
-  const source=readFileSync('src/App.jsx','utf8');
-  assert.ok(source.includes('IB Diploma · 41/45')&&source.includes('DECA ICDC qualifier'));
+  assert.ok(journey.some(stop=>stop.subtitle.includes('IB Diploma · 41/45')&&stop.text.includes('DECA ICDC qualifier')));
 });
 
 test('the first HTML response stays readable without downloading a poster before 3D',()=>{
@@ -58,12 +57,20 @@ test('the first HTML response stays readable without downloading a poster before
   assert.match(html,/Hey, I’m Cary\./);assert.match(html,/First-year Engineering Science/);
   assert.doesNotMatch(html,/rel="preload" as="image"/);
   assert.doesNotMatch(html.replace(/<noscript>[\s\S]*?<\/noscript>/g,''),/<img/);
-  assert.match(html,/<noscript><img src="\/images\/car-poster.png"/);
-  for(const [file,width,height,budget] of [['car-poster.png',1200,720,250000],['garage-poster.png',1600,900,1500000],['garage-poster-mobile.png',750,1200,1000000]]){
+  assert.match(html,/href="\/portfolio\/"/);
+  for(const [file,width,height,budget] of [['car-poster.png',1200,720,250000]]){
     const image=readFileSync('public/images/'+file);
     assert.deepEqual([...image.subarray(0,8)],[137,80,78,71,13,10,26,10]);
     assert.equal(image.readUInt32BE(16),width);assert.equal(image.readUInt32BE(20),height);
     assert.ok(image.length<budget);
   }
   for(const name of ['anchor','kera','clearpath'])assert.ok(statSync(`public/images/projects/${name}.webp`).size<70000);
+});
+
+test('the portrait only appears on the portfolio page, behind a placeholder until it is uploaded',()=>{
+  assert.equal(portrait.src,'/images/cary.jpg');
+  for(const file of ['index.html','src/main.jsx','src/DriveStory.jsx','src/DriveScene.jsx','src/drive.css'])assert.doesNotMatch(readFileSync(file,'utf8'),/cary\.(jpg|webp)|portrait\.(src|ready)|<Portrait/);
+  const page=readFileSync('src/Portfolio.jsx','utf8');
+  assert.match(page,/portrait\.ready/);assert.match(page,/Photo coming soon/);
+  assert.match(readFileSync('portfolio/index.html','utf8'),/src="\/src\/portfolio-main\.jsx"/);
 });
