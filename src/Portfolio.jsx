@@ -57,14 +57,13 @@ function Intro() {
 function ProjectVisual({ project }) {
   const image = PROJECT_IMAGES[project.visual];
   if (image) return <figure className="project-visual"><img {...image} loading="lazy" decoding="async"/></figure>;
-  return <figure className="project-visual spec-sheet" aria-label="Project summary">
-    <dl>
-      <div><dt>Input</dt><dd>Cone map from perception</dd></div>
-      <div><dt>Output</dt><dd>A racing line to follow</dd></div>
-      <div><dt>Also</dt><dd>Energy-use simulation for solar race strategy</dd></div>
-      <div><dt>Language</dt><dd>C++</dd></div>
-    </dl>
-  </figure>;
+  if (!project.notes) return null;
+  return <div className="project-notes">
+    {project.notes.map(note => <section key={note.heading}>
+      <h4>{note.heading}</h4>
+      <ul>{note.points.map(point => <li key={point}>{point}</li>)}</ul>
+    </section>)}
+  </div>;
 }
 
 function Work() {
@@ -81,7 +80,7 @@ function Work() {
           <ul>{project.contributions.map(point => <li key={point}>{point}</li>)}</ul>
           <p className="project-outcome">{project.outcome}</p>
           <p className="project-note">{project.note}</p>
-          <details><summary>Technical details</summary><p>{project.detail}</p></details>
+          {project.detail && <details><summary>Technical details</summary><p>{project.detail}</p></details>}
           <p className="stack">{project.tags.join(' / ')}</p>
           <p className="project-links">{project.links.map(link => <External key={link.href} href={link.href}>{link.label}</External>)}</p>
         </div>

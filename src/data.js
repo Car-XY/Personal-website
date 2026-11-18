@@ -22,7 +22,17 @@ export const projects = [
     contributions:['UTFR: Building cone-colour detection as a core part of the perception pipeline for a 3D map of the car’s surroundings.','Blue Sky Solar: Developing an accurate energy simulator for Blue Sky’s Gen 13 car.'],
     outcome:'Algorithms for 2 university racing programs',
     note:'Source code is private.',
-    detail:'Work for U of T Formula Racing’s Driverless team and Blue Sky Solar Racing. Team-owned source repositories are not linked publicly.',
+    notes:[
+      {heading:'UTFR · LiDAR cone classifier',points:[
+        'Replaces the LiDAR pipeline’s hand-tuned cone check with an XGBoost model that scores each point cluster as cone or not-cone.',
+        'Training data comes from replaying raw LiDAR recordings through the car’s own C++ clustering code.',
+        'The camera CNN labels everything first, then I review all of them again by hand.',
+        'About 25 features per cluster, covering size, shape, taper and height above the ground.',
+      ]},
+      {heading:'Blue Sky Solar · Simulator documentation',points:[
+        'Documenting the energy simulator’s code to break earlier years’ habit of leaving it unexplained, so new members can understand it and build on it.',
+      ]},
+    ],
     tags:['C++','Perception','Simulation'],privateSource:true,
     links:[{label:'Formula team',href:'https://fsaeutoronto.ca'},{label:'Solar team',href:'https://www.blueskysolar.org/'}],
   },
