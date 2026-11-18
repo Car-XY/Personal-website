@@ -38,13 +38,13 @@ export const projects = [
   },
   {
     title:'Anchor',kind:'PRODUCTIVITY × DESKTOP',year:'2026',visual:'anchor',status:'Prototype',
-    description:'Desktop habit tracker: daily check-ins, streaks, goal tracking. Flask + Electron.',
+    description:'Desktop habit tracker: daily check-ins, streaks, goal tracking. Flask + Electron. It is currently under complete revamping. Many more additional features to come!',
     contributions:['Built the Flask and SQLite habit, reflection and timeline backend.','Packaged the local application with Electron.'],
     outcome:'3 core workflows: habits, reflections and a goal timeline',
-    note:'CS50 final project. A web demo is also available.',
+    note:'CS50 final project.',
     detail:'The goal timeline combines dated habit logs and reflections. The desktop version runs the Flask backend on the user’s own machine.',
     tags:['Flask','Electron','SQLite'],
-    links:[{label:'Web demo',href:'https://anchor-productivity.up.railway.app/'},{label:'GitHub',href:'https://github.com/Car-XY/Final-Project-CS50'}],
+    links:[{label:'GitHub',href:'https://github.com/Car-XY/Final-Project-CS50'}],
   },
 ];
 export const skills = [

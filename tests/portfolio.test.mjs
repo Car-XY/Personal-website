@@ -42,7 +42,7 @@ test('each project exposes contributions, an outcome, a status and useful public
     else{assert.equal(github.length,1);assert.equal(new URL(github[0].href).pathname.split('/').filter(Boolean).length,2);}
   }
   assert.equal(projects.find(p=>p.visual==='kera').outcome,'About 16 g/L mean absolute error on study data');
-  assert.ok(projects.find(p=>p.visual==='anchor').links.some(link=>link.href==='https://anchor-productivity.up.railway.app/'));
+  assert.ok(!projects.find(p=>p.visual==='anchor').links.some(link=>link.href.includes('railway.app')));
 });
 
 test('Cary’s supplied wording is retained and non-link skills have no arrows',()=>{
