@@ -39,7 +39,7 @@ test('each project exposes contributions, an outcome, a status and useful public
     assert.ok(project.links.every(link=>new URL(link.href).protocol==='https:'));
     const github=project.links.filter(link=>link.href.startsWith('https://github.com/'));
     if(project.privateSource)assert.equal(github.length,0);
-    else{assert.equal(github.length,1);assert.equal(new URL(github[0].href).pathname.split('/').filter(Boolean).length,2);}
+    else{assert.equal(github.length,1);assert.match(new URL(github[0].href).pathname,/^\/[^/]+\/[^/]+(\/tree\/main)?\/?$/);}
   }
   assert.equal(projects.find(p=>p.visual==='kera').outcome,'About 16 g/L mean absolute error on study data');
   assert.ok(!projects.find(p=>p.visual==='anchor').links.some(link=>link.href.includes('railway.app')));

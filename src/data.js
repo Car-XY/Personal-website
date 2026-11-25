@@ -47,14 +47,14 @@ export const projects = [
     links:[{label:'GitHub',href:'https://github.com/Car-XY/ClearPath'}],
   },
   {
-    title:'Anchor',kind:'PRODUCTIVITY × DESKTOP',year:'2026',visual:'anchor',status:'Prototype',
-    description:'Desktop habit tracker: daily check-ins, streaks, goal tracking. Flask + Electron. It is currently under complete revamping. Many more additional features to come!',
-    contributions:['Built the Flask and SQLite habit, reflection and timeline backend.','Packaged the local application with Electron.'],
-    outcome:'3 core workflows: habits, reflections and a goal timeline',
-    note:'CS50 final project.',
-    detail:'The goal timeline combines dated habit logs and reflections. The desktop version runs the Flask backend on the user’s own machine.',
-    tags:['Flask','Electron','SQLite'],
-    links:[{label:'GitHub',href:'https://github.com/Car-XY/Final-Project-CS50'}],
+    title:'Anchor 2',kind:'PRODUCTIVITY × DESKTOP',year:'2026',visual:'anchor',status:'Revamped',
+    description:'A habit compass: each habit is a ring around the anchor and each segment is one of the last 14 days. Behind it, a live ocean follows your last 7 days, from calm harbour to open water to storm, and an AI companion swims around the screen with tips from your data.',
+    contributions:['Rebuilt the frontend from scratch: the SVG habit compass, a WebGL ocean shader with no libraries, and a sky that follows your clock.','Rebuilt the Flask backend with SQLAlchemy models, a JSON API, and pure-Python services for streaks, hold rates and the sea state.','Added an AI companion (via OpenRouter) that reads your habits, logs and reflections and runs an end-of-day Debrief, with local tips when no API key is set.'],
+    outcome:'Today, Habits, Reflections, Timeline and Debrief, as a web app or an Electron desktop app',
+    note:'A full rebuild of my CS50 final project.',
+    detail:'Sea state: holding 75% or more of your due habits over 7 days is a calm harbour, 45–75% is open water, and under 45% is a storm. SQLite locally, Postgres when deployed; services and the API are tested with pytest.',
+    tags:['Flask','SQLAlchemy','WebGL','Tailwind','Electron'],
+    links:[{label:'GitHub',href:'https://github.com/Car-XY/Anchor/tree/main'}],
   },
 ];
 export const skills = [

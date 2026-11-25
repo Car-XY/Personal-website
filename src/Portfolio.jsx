@@ -7,7 +7,7 @@ import EmailLink from './EmailLink.jsx';
 const PROJECT_IMAGES = {
   kera: { src: '/images/projects/kera.webp', width: 1536, height: 1024, alt: 'Kera: a photo-based hemoglobin estimation app' },
   clearpath: { src: '/images/projects/clearpath.webp', width: 2858, height: 1466, alt: 'ClearPath 3D room planner with furniture and clearance checks' },
-  anchor: { src: '/images/projects/anchor.webp', width: 2288, height: 1448, alt: 'Anchor app: habit tracking, reflections and a goal timeline' },
+  anchor: { src: '/images/projects/anchor.webp', width: 1280, height: 800, alt: 'Anchor 2 Today view: a ring-shaped habit compass around an anchor, today’s habits with streaks, and the seal companion offering a tip' },
 };
 
 const External = ({ href, children, className = '' }) => <a className={`ink-link ${className}`} href={href} target="_blank" rel="noreferrer">{children}<span className="ext" aria-hidden="true">↗</span></a>;

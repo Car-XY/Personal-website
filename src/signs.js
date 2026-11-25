@@ -120,9 +120,9 @@ export const SIGNS = {
     draw(ctx, W, H, u) { exitSign(ctx, W, H, u, { exit: '02', title: 'Blue Sky Solar Racing', line2: 'Strategy · Energy simulation', line3: 'Modelling energy use for the Gen 13 car' }); },
   },
   projects: {
-    w: 8.4, h: 5.9, transparent: true, label: 'Projects: Kera, ClearPath, Anchor',
+    w: 8.4, h: 5.9, transparent: true, label: 'Projects: Kera, ClearPath, Anchor 2',
     draw(ctx, W, H, u) {
-      const rows = [['Kera', 'Hemoglobin from a fingernail photo', 'LIVE'], ['ClearPath', '3D room planner in the browser', 'PROTOTYPE'], ['Anchor', 'Desktop habit tracker', 'CS50']];
+      const rows = [['Kera', 'Hemoglobin from a fingernail photo', 'LIVE'], ['ClearPath', '3D room planner in the browser', 'PROTOTYPE'], ['Anchor 2', 'Habit compass on a live ocean', 'REVAMPED']];
       const bh = u * 1.8, gap = u * .25;
       rows.forEach(([name, sub, tag], i) => {
         const y = i * (bh + gap);
