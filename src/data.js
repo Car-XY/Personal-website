@@ -54,7 +54,7 @@ export const projects = [
     note:'A full rebuild of my CS50 final project.',
     detail:'Sea state: holding 75% or more of your due habits over 7 days is a calm harbour, 45–75% is open water, and under 45% is a storm. SQLite locally, Postgres when deployed; services and the API are tested with pytest.',
     tags:['Flask','SQLAlchemy','WebGL','Tailwind','Electron'],
-    links:[{label:'GitHub',href:'https://github.com/Car-XY/Anchor/tree/main'}],
+    links:[{label:'Live app',href:'https://anchor-v2-production.up.railway.app/'},{label:'GitHub',href:'https://github.com/Car-XY/Anchor/tree/main'}],
   },
 ];
 export const skills = [

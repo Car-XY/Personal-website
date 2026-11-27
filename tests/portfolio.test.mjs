@@ -42,7 +42,9 @@ test('each project exposes contributions, an outcome, a status and useful public
     else{assert.equal(github.length,1);assert.match(new URL(github[0].href).pathname,/^\/[^/]+\/[^/]+(\/tree\/main)?\/?$/);}
   }
   assert.equal(projects.find(p=>p.visual==='kera').outcome,'About 16 g/L mean absolute error on study data');
-  assert.ok(!projects.find(p=>p.visual==='anchor').links.some(link=>link.href.includes('railway.app')));
+  // Only the Anchor 2 deployment; the original CS50 demo link expired.
+  const anchorLinks=projects.find(p=>p.visual==='anchor').links.filter(link=>link.href.includes('railway.app'));
+  assert.deepEqual(anchorLinks.map(link=>link.href),['https://anchor-v2-production.up.railway.app/']);
 });
 
 test('Cary’s supplied wording is retained and non-link skills have no arrows',()=>{
